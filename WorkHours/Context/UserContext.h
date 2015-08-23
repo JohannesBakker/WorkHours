@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "TimeSheet.h"
 
-#define kTestMode           NO //YES //NO
+#define kTestMode           YES //YES //NO
 
 // User location refresh timer interval :  30 mins
 #if (kTestMode == YES)
