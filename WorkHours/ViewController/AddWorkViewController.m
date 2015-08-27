@@ -61,10 +61,16 @@
     NSMutableDictionary *attendeeSelectionStates;
 }
 
+@property (retain, nonatomic) IBOutlet UIView *viewJobBackground;
 @property (retain, nonatomic) IBOutlet UIView *viewJob;
 @property (retain, nonatomic) IBOutlet UILabel *lblJobTitle;
 @property (retain, nonatomic) IBOutlet UILabel *lblJobDescription;
+@property (retain, nonatomic) IBOutlet UILabel *lblJob;
+@property (retain, nonatomic) IBOutlet UILabel *lblDate;
+@property (retain, nonatomic) IBOutlet UILabel *lblStartTime;
+@property (retain, nonatomic) IBOutlet UILabel *lblEndTime;
 @property (retain, nonatomic) IBOutlet UIButton *btnJob;
+
 
 @property (retain, nonatomic) IBOutlet UISwitch *switchAllDay;
 
@@ -108,6 +114,7 @@
     [[UIManager sharedInstance] applyViewBorder:self.viewType borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
     [[UIManager sharedInstance] applyViewBorder:self.viewAttendees borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
     [[UIManager sharedInstance] applyViewBorder:self.viewJob borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    [[UIManager sharedInstance] applyViewBorder:self.viewJobBackground borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
     [[UIManager sharedInstance]  applyDisableCustomButtonStyle:self.btnStart];
     [[UIManager sharedInstance]  applyDisableCustomButtonStyle:self.btnEnd];
     
@@ -118,8 +125,10 @@
     
     [self.dtPickerStart setDate:startTime];
     [self.dtPickerEnd setDate:endTime];
-    [self.btnStart setTitle:[self getDateWithFormat:startTime] forState:UIControlStateNormal];
-    [self.btnEnd setTitle:[self getDateWithFormat:endTime] forState:UIControlStateNormal];
+    
+    self.lblDate.text = [self getDateWithFormat:startTime];
+    self.lblStartTime.text = [self getTimeWithFormat:startTime];
+    self.lblEndTime.text = [self getTimeWithFormat:endTime];
     [self.dtPickerStart addTarget:self action:@selector(dateIsChanged:) forControlEvents:UIControlEventValueChanged];
     [self.dtPickerEnd addTarget:self action:@selector(dateIsChanged:) forControlEvents:UIControlEventValueChanged];
     
@@ -206,7 +215,17 @@
     NSString *formatDate = [NSString stringWithFormat:@"%@", date];
     formatDate = [NSString stringWithFormat:@"%@", [date toLocalTime]];
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"MMM dd,yyyy h:mm a"];
+    [dateFormatter setDateFormat:@"dd MMM yyyy"];
+    formatDate = [dateFormatter stringFromDate:date];
+    
+    return formatDate;
+}
+
+- (NSString *)getTimeWithFormat:(NSDate *)date {
+    NSString *formatDate = [NSString stringWithFormat:@"%@", date];
+    formatDate = [NSString stringWithFormat:@"%@", [date toLocalTime]];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"h:mm a"];
     formatDate = [dateFormatter stringFromDate:date];
     
     return formatDate;
@@ -219,22 +238,31 @@
         
         startTime = datePicker.date;
         
-        NSMutableAttributedString *titleString = [[NSMutableAttributedString alloc] initWithString:[self getDateWithFormat:startTime]];
+        NSMutableAttributedString *startTimeString = [[NSMutableAttributedString alloc] initWithString:[self getTimeWithFormat:startTime]];
         
         if ([startTime isLaterThanDate:endTime] ) {
-            [titleString addAttribute:NSStrikethroughStyleAttributeName value:[NSNumber numberWithInteger:NSUnderlineStyleSingle] range:NSMakeRange(0, [titleString length])];
+            [startTimeString addAttribute:NSStrikethroughStyleAttributeName value:[NSNumber numberWithInteger:NSUnderlineStyleSingle] range:NSMakeRange(0, [startTimeString length])];
+            
+            // restore endTime label
+            NSMutableAttributedString *endTimeString = [[NSMutableAttributedString alloc] initWithString:[self getTimeWithFormat:endTime]];
+            [self.lblEndTime setAttributedText:endTimeString];
         }
-        [self.btnStart setAttributedTitle:titleString forState:UIControlStateNormal];
         
+        [self.lblStartTime setAttributedText:startTimeString];
     }
     else if (datePicker == self.dtPickerEnd) {
         endTime = datePicker.date;
         
-        NSMutableAttributedString *titleString = [[NSMutableAttributedString alloc] initWithString:[self getDateWithFormat:endTime]];
+        NSMutableAttributedString *endTimeString = [[NSMutableAttributedString alloc] initWithString:[self getTimeWithFormat:endTime]];
         if ([endTime isEarlierThanDate:startTime] ) {
-            [titleString addAttribute:NSStrikethroughStyleAttributeName value:[NSNumber numberWithInteger:NSUnderlineStyleSingle] range:NSMakeRange(0, [titleString length])];
+            [endTimeString addAttribute:NSStrikethroughStyleAttributeName value:[NSNumber numberWithInteger:NSUnderlineStyleSingle] range:NSMakeRange(0, [endTimeString length])];
+            
+            // restore startTime label
+            NSMutableAttributedString *startTimeString = [[NSMutableAttributedString alloc] initWithString:[self getTimeWithFormat:startTime]];
+            [self.lblStartTime setAttributedText:startTimeString];
         }
-        [self.btnEnd setAttributedTitle:titleString forState:UIControlStateNormal];
+        
+        [self.lblEndTime setAttributedText:endTimeString];
     }
 }
 
@@ -393,37 +421,25 @@
         if (isCollapsedStartDate) {
             self.dtPickerStart.hidden = NO;
             self.constraitTopOfEndDate.constant = kDatePickerHeight;
-            [self.btnStart setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+            self.lblStartTime.textColor = [UIColor redColor];
             
             isCollapsedStartDate = NO;
             
             if (isCollapsedEndDate == NO) {
                 self.dtPickerEnd.hidden = YES;
                 self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
-                [self.btnEnd setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                self.lblEndTime.textColor = [UIColor blackColor];
                 
                 isCollapsedEndDate = YES;
             }
-            
-            CGRect newFrame = self.viewScrollContents.frame;
-            
-            newFrame.size.height += 300;
-            self.viewScrollContents.frame = newFrame;
-            
         }
         else
         {
             self.dtPickerStart.hidden = YES;
             self.constraitTopOfEndDate.constant = 0.0f;
-            [self.btnStart setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            self.lblStartTime.textColor = [UIColor blackColor];
             
             isCollapsedStartDate = YES;
-            
-            CGRect newFrame = self.viewScrollContents.frame;
-            
-            newFrame.size.height -= 300;
-            self.viewScrollContents.frame = newFrame;
-
         }
     } completion:^(BOOL finished) {
     }];
@@ -436,14 +452,14 @@
         if (isCollapsedEndDate) {
             self.dtPickerEnd.hidden = NO;
             self.constraitTopOfAttendee.constant = kDatePickerHeight;
-            [self.btnEnd setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+            self.lblEndTime.textColor = [UIColor redColor];
             
             isCollapsedEndDate = NO;
             
             if (isCollapsedStartDate == NO) {
                 self.dtPickerStart.hidden = YES;
                 self.constraitTopOfEndDate.constant = 0.0f;
-                [self.btnStart setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                self.lblStartTime.textColor = [UIColor blackColor];
                 
                 isCollapsedStartDate = YES;
             }
@@ -452,7 +468,7 @@
         {
             self.dtPickerEnd.hidden = YES;
             self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
-            [self.btnEnd setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            self.lblEndTime.textColor = [UIColor blackColor];
             
             isCollapsedEndDate = YES;
         }
@@ -648,20 +664,15 @@
             if (isCollapsedStartDate == NO) {
                 self.dtPickerStart.hidden = YES;
                 self.constraitTopOfEndDate.constant = 0.0f;
-                [self.btnStart setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                self.lblStartTime.textColor = [UIColor blackColor];
                 
                 isCollapsedStartDate = YES;
-                
-                CGRect newFrame = self.viewScrollContents.frame;
-                
-                newFrame.size.height -= 300;
-                self.viewScrollContents.frame = newFrame;
             }
             
             if (isCollapsedEndDate == NO) {
                 self.dtPickerEnd.hidden = YES;
                 self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
-                [self.btnEnd setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                self.lblEndTime.textColor = [UIColor blackColor];
                 
                 isCollapsedEndDate = YES;
             }
@@ -674,6 +685,16 @@
     
     self.btnStart.enabled = isTimeEnable;
     self.btnEnd.enabled = isTimeEnable;
+    
+    // change color of start/end time label
+    if (isAllDay) {
+        self.lblStartTime.textColor = kButtonDisableTitleColor;
+        self.lblEndTime.textColor = kButtonDisableTitleColor;
+    }
+    else {
+        self.lblStartTime.textColor = [UIColor blackColor];
+        self.lblEndTime.textColor = [UIColor blackColor];
+    }
 }
 
 - (IBAction)onJobClicked:(id)sender {
@@ -692,6 +713,8 @@
     selectedJobId = selJobId;
     selectedJobPostUnit = [NSString stringWithFormat:@"%@", postUnit];
     selectedJobNote = [NSString stringWithFormat:@"%@", notes];
+    
+    self.lblJob.hidden = YES;
     
     self.lblJobTitle.text = [NSString stringWithFormat:@"%d - %@", selectedJobId, selectedJobPostUnit];
     self.lblJobDescription.text = [NSString stringWithFormat:@"%@", selectedJobNote];
@@ -722,11 +745,10 @@
     
     [self.dtPickerStart setDate:startTime];
     [self.dtPickerEnd setDate:endTime];
-    [self.btnStart setTitle:[self getDateWithFormat:startTime] forState:UIControlStateNormal];
-    [self.btnEnd setTitle:[self getDateWithFormat:endTime] forState:UIControlStateNormal];
     
-    
-    
+    self.lblDate.text = [self getDateWithFormat:startTime];
+    self.lblStartTime.text = [self getTimeWithFormat:startTime];
+    self.lblEndTime.text = [self getTimeWithFormat:endTime];
 }
 
 @end

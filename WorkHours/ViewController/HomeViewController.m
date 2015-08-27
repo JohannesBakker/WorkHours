@@ -63,14 +63,12 @@
 
 @property (weak, nonatomic) IBOutlet UIView *viewMap;
 @property (weak, nonatomic) IBOutlet UIView *viewList;
-@property (weak, nonatomic) IBOutlet UIButton *btnMapview;
-@property (weak, nonatomic) IBOutlet UIButton *btnListview;
 @property (weak, nonatomic) IBOutlet UIView *viewCalendar;
 @property (weak, nonatomic) IBOutlet JTCalendarMenuView *calendarMenu;
 @property (weak, nonatomic) IBOutlet JTCalendarContentView *calendarContent;
 
 @property (weak, nonatomic) IBOutlet UIView *viewDayEvent;
-@property (weak, nonatomic) IBOutlet UILabel *lblNoneJobs;
+@property (weak, nonatomic) IBOutlet UILabel *lblNoneTimesheets;
 
 @end
 
@@ -82,8 +80,10 @@
     
     [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:YES];
     self.navigationItem.hidesBackButton = YES;
+
     
     // Do any additional setup after loading the view.
+
     
     [self initLocalVariables];
     
@@ -95,15 +95,19 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    
+    // hide navigationController
     [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:NO];
     
     if (isMapviewMode)
     {
         NSDate *currDate = [NSDate date];
         
+        // refresh map
         [self getTimesheetUserPins:currDate];
         
     } else {
+        
         // refresh calendar event view
         [self getEventFromDate:selDate eventPageIndex:prevPageIndex];
     }
@@ -116,15 +120,9 @@
 
 - (void)updateButtonUI {
     if (isMapviewMode) {
-        [[UIManager sharedInstance] applySelectedButtonStyle:self.btnMapview];
-        [[UIManager sharedInstance] applyUnselectedButtonStyle:self.btnListview];
-        
         self.navigationItem.rightBarButtonItem = nil;
     }
     else {
-        [[UIManager sharedInstance] applyUnselectedButtonStyle:self.btnMapview];
-        [[UIManager sharedInstance] applySelectedButtonStyle:self.btnListview];
-        
         [self getEventFromDate:selDate eventPageIndex:prevPageIndex];
     }
 }
@@ -140,28 +138,8 @@
 }
 */
 
-
-- (IBAction)onMapviewClicked:(id)sender {
-    if (isMapviewMode == NO) {
-        isMapviewMode = YES;
-        self.viewMap.hidden = NO;
-        self.viewList.hidden = YES;
-        [self updateButtonUI];
-        
-        NSDate *currDate = [NSDate date];
-        
-        [self getTimesheetUserPins:currDate];
-    }
-}
-
-- (IBAction)onListviewClicked:(id)sender {
-    if (isMapviewMode == YES) {
-        isMapviewMode = NO;
-        self.viewMap.hidden = YES;
-        self.viewList.hidden = NO;
-        [self updateButtonUI];
-    }
-}
+- (IBAction) onBackClicked:(id)sendor {
+    NSLog(@"Clicked back button");}
 
 - (IBAction)onNewEventClicked:(id)sender {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
@@ -180,6 +158,30 @@
     
     [self gotoAddNewEvent:startTime endTime:endTime initLabourTypeId:kLabourTypeId_Labour];
 }
+
+- (IBAction)onChangedViewType:(id)sender {
+    UISegmentedControl *segType = (UISegmentedControl*)sender;
+    
+    if (segType.selectedSegmentIndex == 0) {
+        isMapviewMode = YES;
+        self.viewMap.hidden = NO;
+        self.viewList.hidden = YES;
+        [self updateButtonUI];
+        
+        NSDate *currDate = [NSDate date];
+        
+        [self getTimesheetUserPins:currDate];
+        
+    }
+    else {
+        isMapviewMode = NO;
+        self.viewMap.hidden = YES;
+        self.viewList.hidden = NO;
+        [self updateButtonUI];
+
+    }
+}
+
 
 
 - (void)initLocalVariables
@@ -234,7 +236,7 @@
         
         [self initDayEventView];
         
-        self.lblNoneJobs.hidden = YES;
+        self.lblNoneTimesheets.hidden = YES;
     }
     
     
@@ -497,7 +499,7 @@
     if (daySheets == nil || daySheets.arrTimesheets == nil || daySheets.arrTimesheets.count == 0)
         isHasJobs = NO;
     
-    self.lblNoneJobs.hidden = isHasJobs;
+    self.lblNoneTimesheets.hidden = isHasJobs;
     
 }
 

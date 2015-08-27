@@ -14,6 +14,8 @@
 #import "UserContext.h"
 #import "AppContext.h"
 #import "SVProgressHUD+WorkHours.h"
+#import "UIManager.h"
+#import "Constant.h"
 
 #define kJobCellHeight      70.0f
 
@@ -24,7 +26,7 @@
 
 
 @property (weak, nonatomic) IBOutlet UITableView *viewJobs;
-
+@property (retain, nonatomic) IBOutlet UIView *viewButton;
 
 @end
 
@@ -40,6 +42,12 @@
     
     arrJobs = [NSMutableArray array];
     isDisplayByNumber = YES;
+    
+    // set Buttone view's border
+    [[UIManager sharedInstance] applyViewBorder:self.viewButton borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    
+    // remove tableviewcell separator line
+    self.viewJobs.separatorStyle = UITableViewCellSeparatorStyleNone;
     
     [self getJobListFromServer];
     
@@ -166,6 +174,9 @@
         [cell initCellData:currJob.jobID jobPostUnit:currJob.companyName jobDescription:currJob.notes distance:currJob.distance];
         cell.delegate = self;
         
+        // set cell border
+        [[UIManager sharedInstance] applyViewBorder:cell.contentView borderColor:kCellBorderColor borderWidth:kCellBorderWidth];
+        
         return cell;
         
     }
@@ -174,6 +185,9 @@
     
     [cell initCellData:currJob.jobID jobPostUnit:currJob.companyName jobDescription:currJob.notes distance:currJob.distance];
     cell.delegate = self;
+    
+    // set cell border
+    [[UIManager sharedInstance] applyViewBorder:cell.contentView borderColor:kCellBorderColor borderWidth:kCellBorderWidth];
     
     return cell;
 }
