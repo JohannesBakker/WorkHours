@@ -27,4 +27,5 @@
 
 - (void)initWithParam:(int)typeId typename:(NSString *)typename;
 
++ (NSString *)labourTypeName:(int)typeId;
 @end

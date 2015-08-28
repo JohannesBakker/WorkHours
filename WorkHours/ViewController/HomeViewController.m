@@ -70,6 +70,12 @@
 @property (weak, nonatomic) IBOutlet UIView *viewDayEvent;
 @property (weak, nonatomic) IBOutlet UILabel *lblNoneTimesheets;
 
+@property (weak, nonatomic) IBOutlet UIView *viewMapTitle;
+@property (weak, nonatomic) IBOutlet UIView *viewConnection;
+@property (weak, nonatomic) IBOutlet UILabel *lblMapTitle;
+@property (weak, nonatomic) IBOutlet UILabel *lblCalendarConnection;
+
+
 @end
 
 @implementation HomeViewController
@@ -106,10 +112,15 @@
         // refresh map
         [self getTimesheetUserPins:currDate];
         
+        // update UI
+        [self updateMapUI];
     } else {
         
         // refresh calendar event view
         [self getEventFromDate:selDate eventPageIndex:prevPageIndex];
+        
+        // refresh UI
+        [self updateCalendarUI];
     }
 }
 
@@ -127,6 +138,32 @@
     }
 }
 
+// update Map UI
+- (void)updateMapUI {
+    
+    NSDate *currDate = [NSDate date];
+    
+    // refresh Map title
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"EEEE, dd MMMM"];
+    self.lblMapTitle.text = [dateFormatter stringFromDate:currDate];
+    
+    // change view color with mapTitle color
+    self.view.backgroundColor = self.viewMapTitle.backgroundColor;
+    
+    // TODO - status bar text color change with Black color
+}
+
+// update Calendar UI
+- (void)updateCalendarUI {
+    
+    // change view color with connection color
+    self.view.backgroundColor = self.viewConnection.backgroundColor;
+    
+    // TODO - status bar text color change with white color
+    
+}
+
 
 /*
 #pragma mark - Navigation
@@ -138,8 +175,16 @@
 }
 */
 
-- (IBAction) onBackClicked:(id)sendor {
-    NSLog(@"Clicked back button");}
+// Back button event on Map UI
+- (IBAction) onMapBackClicked:(id)sendor {
+    NSLog(@"Clicked Map back button");
+}
+
+// Year button event on Calendar UI
+- (IBAction) onCalendarYearClicked:(id)sendor {
+    NSLog(@"Clicked Calendar year button");
+}
+
 
 - (IBAction)onNewEventClicked:(id)sender {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
@@ -172,12 +217,17 @@
         
         [self getTimesheetUserPins:currDate];
         
+        // update Map UI
+        [self updateMapUI];
     }
     else {
         isMapviewMode = NO;
         self.viewMap.hidden = YES;
         self.viewList.hidden = NO;
         [self updateButtonUI];
+        
+        // update Calendar UI
+        [self updateCalendarUI];
 
     }
 }
@@ -237,6 +287,7 @@
         [self initDayEventView];
         
         self.lblNoneTimesheets.hidden = YES;
+        
     }
     
     

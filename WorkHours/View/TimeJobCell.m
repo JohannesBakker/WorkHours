@@ -14,6 +14,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *lblEndTime;
 @property (weak, nonatomic) IBOutlet UILabel *lblJobTitle;
 @property (weak, nonatomic) IBOutlet UILabel *lblJobDescription;
+@property (weak, nonatomic) IBOutlet UIView *viewSeperate;
 
 @end
 
@@ -29,7 +30,7 @@
     // Configure the view for the selected state
 }
 
-- (void)setJobContents:(NSString *)startTime endTime:(NSString *)endTime jobTitle:(NSString *)title jobDescription:(NSString *)description {
+- (void)setJobContents:(NSString *)startTime endTime:(NSString *)endTime jobTitle:(NSString *)title jobDescription:(NSString *)description labourColor:(UIColor *)labourColor {
     
     NSString *strStartTime = @"";
     NSString *strEndTime = @"";
@@ -52,6 +53,7 @@
     self.lblEndTime.text = strEndTime;
     self.lblJobTitle.text = strTitle;
     self.lblJobDescription.text = strDesc;
+    self.viewSeperate.backgroundColor = labourColor;
 }
 
 @end

@@ -19,6 +19,6 @@
 
 @property (nonatomic, weak) id<TimeJobCellDelegate> delegate;
 
-- (void)setJobContents:(NSString *)startTime endTime:(NSString *)endTime jobTitle:(NSString *)title jobDescription:(NSString *)description;
+- (void)setJobContents:(NSString *)startTime endTime:(NSString *)endTime jobTitle:(NSString *)title jobDescription:(NSString *)description labourColor:(UIColor *)labourColor;
 
 @end

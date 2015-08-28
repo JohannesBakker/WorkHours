@@ -10,9 +10,12 @@
 #import "TimeJobCell.h"
 #import "UserContext.h"
 #import "LabourType.h"
+#import "Constant.h"
+#import "UIManager.h"
 
-#define kTimeJobCellHeight          70.0f
-#define kSimpleJobCellHeight        40.0f;
+#define kTimeJobCellHeight          50.0f
+#define kSeperateLaborColor       [UIColor brownColor]
+#define kSeperateTravelColor      [UIColor blueColor]
 
 
 @interface DayEventViewController () <UITableViewDelegate, UITableViewDataSource, TimeJobCellDelegate> {
@@ -138,12 +141,22 @@
     [dateFormatter setDateFormat:@"hh:mm a"];
     
     TimeJobCell *cell = (TimeJobCell*)[tableView dequeueReusableCellWithIdentifier:@"TimeJobCell"];
+    UIColor *labourColor;
+    NSString *description;
+    
+    if (currSheet.labourTypeID == kLabourTypeId_Labour) {
+        labourColor = kSeperateLaborColor;
+        description = currSheet.jobDescription;
+    } else {
+        labourColor = kSeperateTravelColor;
+        description = [LabourType labourTypeName:currSheet.labourTypeID];
+    }
     
     [cell setJobContents:[dateFormatter stringFromDate:currSheet.startTime]
                  endTime:[dateFormatter stringFromDate:currSheet.endTime]
                 jobTitle:[NSString stringWithFormat:@"%d - %@", currSheet.jobID, currSheet.companyName]
-          jobDescription:currSheet.jobDescription];
-    cell.delegate = self;
+          jobDescription:description labourColor:labourColor];
+    cell.delegate = self;    
     
     return cell;
     
