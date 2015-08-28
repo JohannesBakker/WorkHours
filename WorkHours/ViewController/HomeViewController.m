@@ -151,7 +151,8 @@
     // change view color with mapTitle color
     self.view.backgroundColor = self.viewMapTitle.backgroundColor;
     
-    // TODO - status bar text color change with Black color
+    // status bar text color change with white color
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
 }
 
 // update Calendar UI
@@ -160,7 +161,8 @@
     // change view color with connection color
     self.view.backgroundColor = self.viewConnection.backgroundColor;
     
-    // TODO - status bar text color change with white color
+    // status bar text color change with white color
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
     
 }
 
