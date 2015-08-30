@@ -106,6 +106,8 @@
     userContext.isAppBackground = NO;
     userContext.isTestMode = kTestMode;
     userContext.isNewEventWindow = NO;
+    
+    [userContext initUserContext];
 
     // init alert variable
     isAlertDisplay = NO;
@@ -499,7 +501,9 @@
 - (void)downloadTimesheets:(NSDate *)selectDate {
     [[ServerManager sharedManager] getTimesheetByDate:[appContext loadUserID] selectedDate:selectDate success:^(NSMutableArray *arrSheets)
      {
-         [userContext initTodayTimesheets:arrSheets];
+         // set date timesheets
+         [userContext addTimesheets:selectDate arrSheets:arrSheets];
+
          
          [self checkLocationNotification:selectDate];
          

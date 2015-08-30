@@ -8,6 +8,7 @@
 
 #import "UserContext.h"
 #import "NSDate+Utilities.h"
+#import "LabourType.h"
 
 @interface UserContext() {
     
@@ -19,8 +20,6 @@
 @implementation UserContext
 
 @synthesize arrLabourType;
-@synthesize arrTimesheetByDate;
-@synthesize arrTodayTimesheets;
 @synthesize arrUserPins;
 @synthesize dictTimesheets;
 
@@ -43,8 +42,6 @@
     // init local variables
     dictTimesheets = [[NSMutableDictionary alloc] init];
     arrLabourType = [NSMutableArray array];
-    arrTimesheetByDate = [NSMutableArray array];
-    arrTodayTimesheets = [NSMutableArray array];
     arrUserPins = [NSMutableArray array];
 }
 
@@ -55,17 +52,6 @@
     }
     else {
         arrLabourType = [[NSMutableArray alloc] initWithArray:arrType];
-    }
-}
-
-
-- (void)initTodayTimesheets:(NSMutableArray *)arrTimeSheets
-{
-    if (arrTimeSheets == nil) {
-        arrTodayTimesheets = [NSMutableArray array];
-    }
-    else {
-        arrTodayTimesheets = [[NSMutableArray alloc] initWithArray:arrTimeSheets];
     }
 }
 
@@ -82,17 +68,16 @@
 
 - (TimeSheet *)getCoveredTimesheet:(NSDate *)pinCreateTime
 {
-    if (pinCreateTime == nil  || arrTodayTimesheets == nil)
-        return nil;
+    NSMutableArray *arrTimeSheets = [self getTimesheets:pinCreateTime];
     
-    for (NSUInteger i = 0; i < arrTodayTimesheets.count; i++)
-    {
-        TimeSheet *sheet = [arrTodayTimesheets objectAtIndex:i];
-        
-        if ( ([pinCreateTime isEqualToDate:sheet.startTime] || [pinCreateTime isLaterThanDate:sheet.startTime])
-            && ([pinCreateTime isEqualToDate:sheet.endTime] || [pinCreateTime isEarlierThanDate:sheet.endTime])  )
-        {
-            return sheet;
+    if (arrTimeSheets) {
+        for (TimeSheet *sheet in arrTimeSheets) {
+            
+            if ( ([pinCreateTime isEqualToDate:sheet.startTime] || [pinCreateTime isLaterThanDate:sheet.startTime])
+                && ([pinCreateTime isEqualToDate:sheet.endTime] || [pinCreateTime isEarlierThanDate:sheet.endTime])  )
+            {
+                return sheet;
+            }
         }
     }
     
@@ -207,6 +192,22 @@
     return 0;
 }
 
+// get timesheets connection count for date
+- (NSUInteger)getTimesheetsConnections:(NSDate *)date
+{
+    NSMutableArray *arrTimesheets = [self getTimesheets:date];
+    NSUInteger nConnections = 0;
+    
+    if (arrTimesheets != nil) {
+        for (TimeSheet *oneSheet in arrTimesheets) {
+            if (oneSheet.labourTypeID == kLabourTypeId_Labour)
+                nConnections ++;
+        }
+    }
+    
+    
+    return nConnections;
+}
 
 
 

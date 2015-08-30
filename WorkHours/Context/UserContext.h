@@ -40,16 +40,9 @@
 
 @property (nonatomic, retain) NSMutableArray *arrLabourType;
 
-//  arrTimesheetByDate : array of TimeSheetPerDay for user date
-// used in calendar view
-@property (nonatomic, retain) NSMutableArray *arrTimesheetByDate;
-
 //  arrUserPins : array of UserPin for user location
 // used in map view
 @property (nonatomic, retain) NSMutableArray *arrUserPins;
-
-// in use only map view for user pin
-@property (nonatomic, retain) NSMutableArray *arrTodayTimesheets;
 
 // used in calendar view
 //      object key : date (yyyy-MM-dd)
@@ -68,20 +61,18 @@
 - (void)initUserContext;
 
 - (void)initLabourTypeArray:(NSMutableArray *)arrType;
-- (void)initTodayTimesheets:(NSMutableArray *)arrTimeSheets;
 - (void)initUserPinArray:(NSMutableArray *)arrPins;
-
-- (TimeSheet *)getCoveredTimesheet:(NSDate *)pinCreateTime;
-
-
 
 - (void)addTimesheets:(NSMutableArray *)arrSheets;
 - (void)addTimesheets:(NSDate *)date arrSheets:(NSMutableArray *)arrSheets;
 - (void)removeTimesheets:(NSDate *)date;
 - (void)removeTimesheets:(NSDate *)beginDate endDate:(NSDate*)endDate;
 
+- (TimeSheet *)getCoveredTimesheet:(NSDate *)pinCreateTime;
 - (NSMutableArray *)getTimesheets:(NSDate *)date;
 - (NSUInteger)getTimesheetsCount:(NSDate *)date;
+- (NSUInteger)getTimesheetsConnections:(NSDate *)date;
+
 
 @end
 

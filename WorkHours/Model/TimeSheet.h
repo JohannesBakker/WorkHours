@@ -36,19 +36,4 @@
 
 
 
-//--------------------------------------
-//  Timesheets per day
-//--------------------------------------
-
-@interface TimeSheetPerDay : NSObject
-
-@property (nonatomic, retain) NSDate *dayDate;
-@property (nonatomic, retain) NSMutableArray *arrTimesheets;
-
-- (void)initWithParam:(NSDate *)selDate arrTimeSheets:(NSMutableArray *)arrTimeSheets;
-- (BOOL)isValidTimesheetAdding:(TimeSheet *)newTimesheet;
-- (void)addNewTimesheet:(TimeSheet *)newTimesheet;
-
-
-@end
 

@@ -73,6 +73,7 @@
 @property (weak, nonatomic) IBOutlet UIView *viewConnection;
 @property (weak, nonatomic) IBOutlet UILabel *lblMapTitle;
 @property (weak, nonatomic) IBOutlet UILabel *lblCalendarConnection;
+@property (weak, nonatomic) IBOutlet UIButton *btnYear;
 
 
 @end
@@ -115,9 +116,6 @@
         [self updateMapUI];
     } else {
         
-        // refresh calendar event view
-        //[self displayTimesheets:selDate eventPageIndex:prevPageIndex];
-        
         // download timesheets for current month
         [self getTimesheetsByMonthFromServer:selDate];
         
@@ -137,8 +135,7 @@
         self.navigationItem.rightBarButtonItem = nil;
     }
     else {
-//        [self displayTimesheets:selDate eventPageIndex:prevPageIndex];
-        
+       
         // download timesheets for current month
         [self getTimesheetsByMonthFromServer:selDate];
     }
@@ -169,17 +166,24 @@
     
     // status bar text color change with white color
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    
+    // change Year button title
+    [self changeCalendarYearButton];
 }
 
 // display Personal hospital connections in Timesheet window
 - (void)displayPersonalPospitalConnections:(NSDate *)selectedDate {
     
+    NSUInteger nConnections = [userContext getTimesheetsConnections:selectedDate];
+    self.lblCalendarConnection.text = [NSString stringWithFormat:@"%d", (int)nConnections];
+}
+
+// change year button title
+- (void)changeCalendarYearButton {
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"MMM YYYY"];
     
-    int nConnections = 0;
-    
-    // TODO - get nConnections
-    
-    self.lblCalendarConnection.text = [NSString stringWithFormat:@"%d", nConnections];
+    [self.btnYear setTitle:[dateFormatter stringFromDate:self.calendar.currentDate] forState:UIControlStateNormal];
 }
 
 
@@ -265,12 +269,6 @@
         userContext = [UserContext sharedInstance];
         
         userContext.mapDelegate = self;
-        
-        // init arrUserPins
-        [userContext initUserPinArray:nil];
-        
-        // init user context
-        [userContext initUserContext];
     }
     
     // init calendar view
@@ -493,6 +491,9 @@
 {
     NSLog(@"Previous page loaded");
     
+    // change year button title
+    [self changeCalendarYearButton];
+    
     // download timesheets for current month
     [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
 }
@@ -500,6 +501,9 @@
 - (void)calendarDidLoadNextPage
 {
     NSLog(@"Next page loaded");
+    
+    // change year button title
+    [self changeCalendarYearButton];
     
     // download timesheets for current month
     [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
@@ -567,6 +571,9 @@
     }
     
     self.lblNoneTimesheets.hidden = isHasJobs;
+    
+    // display connections
+    [self displayPersonalPospitalConnections:date];
 }
 
 
@@ -580,7 +587,8 @@
     
     [[ServerManager sharedManager] getTimesheetByDate:user_id selectedDate:select_date success:^(NSMutableArray *arrSheets)
      {
-         [userContext initTodayTimesheets:arrSheets];
+         // set date timesheets
+         [userContext addTimesheets:select_date arrSheets:arrSheets];
          
          [self getUserPinsFromServer];
          
