@@ -116,7 +116,11 @@
     } else {
         
         // refresh calendar event view
-        [self getTimesheetByDateFromServer:selDate isShowEvent:YES eventPageIndex:prevPageIndex];
+        //[self displayTimesheets:selDate eventPageIndex:prevPageIndex];
+        
+        // download timesheets for current month
+        [self getTimesheetsByMonthFromServer:selDate];
+        
         
         // refresh UI
         [self updateCalendarUI];
@@ -133,7 +137,10 @@
         self.navigationItem.rightBarButtonItem = nil;
     }
     else {
-        [self getTimesheetByDateFromServer:selDate isShowEvent:YES eventPageIndex:prevPageIndex];
+//        [self displayTimesheets:selDate eventPageIndex:prevPageIndex];
+        
+        // download timesheets for current month
+        [self getTimesheetsByMonthFromServer:selDate];
     }
 }
 
@@ -292,23 +299,7 @@
     [self updateButtonUI];
     
     // download timesheets for current month
-    [self getTimesheetsByMonthFromServer:[NSDate date] successFunc:^(void) {
-        
-        // refresh Calendar
-        [self.calendar reloadData];
-        
-    } failureFunc:^(void) {
-        
-        // none process
-     
-    }];
-    
-   
-    
-    
-    
-    
-    
+    [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
     
     // init user location refresh
 }
@@ -495,17 +486,23 @@
             dateOffsetDays ++;
     }
     
-    [self getTimesheetByDateFromServer:selDate isShowEvent:YES eventPageIndex:prevPageIndex];
+    [self displayTimesheets:selDate eventPageIndex:prevPageIndex];
 }
 
 - (void)calendarDidLoadPreviousPage
 {
     NSLog(@"Previous page loaded");
+    
+    // download timesheets for current month
+    [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
 }
 
 - (void)calendarDidLoadNextPage
 {
     NSLog(@"Next page loaded");
+    
+    // download timesheets for current month
+    [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
 }
 
 #pragma mark - Fake data
@@ -553,53 +550,25 @@
     [eventScrollerVC.view setFrame:eventRect ];
 }
 
-- (void)displayDayTimesheets:(TimeSheetPerDay* )daySheets eventPageIndex:(NSUInteger)eventPageIndex
+// display timesheets for selected date
+- (void)displayTimesheets:(NSDate *)date eventPageIndex:(NSUInteger)eventPageIndex
 {
     DayEventViewController *nextVC = [timesheetVCArray objectAtIndex:eventPageIndex];
     
     BOOL isHasJobs = YES;
+    NSMutableArray *arrTimesheets = [userContext getTimesheets:date];
     
     
-    if (daySheets != nil && daySheets.dayDate != nil) {
-        [nextVC initWithTimesheets:daySheets.dayDate TimesheetList:daySheets.arrTimesheets];
+    if (date != nil && arrTimesheets != nil && arrTimesheets.count > 0) {
+        [nextVC initWithTimesheets:date TimesheetList:arrTimesheets];
+    }
+    else {
+        isHasJobs = NO;
     }
     
-    if (daySheets == nil || daySheets.arrTimesheets == nil || daySheets.arrTimesheets.count == 0)
-        isHasJobs = NO;
-    
     self.lblNoneTimesheets.hidden = isHasJobs;
-    
 }
 
-
-- (void)getTimesheetByDateFromServer:(NSDate*)select_date isShowEvent:(BOOL)isShowEvent eventPageIndex:(NSUInteger)eventPageIndex
-{
-    
-    int user_id = [appContext loadUserID];
-    
-    SHOW_PROGRESS(@"Fetching data...");
-    
-    [[ServerManager sharedManager] getTimesheetByDate:user_id selectedDate:select_date success:^(NSMutableArray *arrSheets)
-    {
-        HIDE_PROGRESS;
-        
-        TimeSheetPerDay *dayTimesheets = [[TimeSheetPerDay alloc] init];
-        
-        [dayTimesheets initWithParam:select_date arrTimeSheets:arrSheets];
-        
-        if (isShowEvent) {
-            [self displayDayTimesheets:dayTimesheets eventPageIndex:eventPageIndex];
-        }
-        
-    } failure:^(NSString *failure)  {
-        HIDE_PROGRESS_WITH_FAILURE(failure);
-        
-        if (isShowEvent) {
-            [self displayDayTimesheets:nil eventPageIndex:eventPageIndex];
-        }
-        
-    }];
-}
 
 - (void)getTimesheetUserPins:(NSDate*)select_date
 {
@@ -624,7 +593,7 @@
 
 // download timesheets for selected month
 // duration : before 7 days ~ after 7 days
-- (void)getTimesheetsByMonthFromServer:(NSDate*)selectedMonth successFunc:(void (^)(void))successFunc failureFunc:(void (^)(void))faillureFunc
+- (void)getTimesheetsByMonthFromServer:(NSDate*)selectedMonth
 {
     // create current date with month
     NSDateComponents *comps = [[NSDateComponents alloc] init];
@@ -650,22 +619,20 @@
         // add timesheets
         [userContext addTimesheets:arrSheets];
         
-        // addinional function
-        successFunc();
+        // refresh Calendar
+        [self.calendar reloadData];
+        
+        if (!isMapviewMode) {
+            // refresh calendar event view
+            [self displayTimesheets:selDate eventPageIndex:prevPageIndex];
+        }
+        
         
     } failure:^(NSString *failture) {
         
         HIDE_PROGRESS_WITH_FAILURE(failture);
         
-        faillureFunc();
-        
     }];
-    
-    
-    
-    
-    
-    
 }
 
 
@@ -704,7 +671,7 @@
     NSDate *nextDate = [selDate dateByAddingDays:dateOffsetDays];
     
     // get event data for selected date
-    [self getTimesheetByDateFromServer:nextDate isShowEvent:YES eventPageIndex:index];
+    [self displayTimesheets:nextDate eventPageIndex:index];
     
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"kJTCalendarDaySelected" object:nextDate];
