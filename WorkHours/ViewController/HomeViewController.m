@@ -22,6 +22,7 @@
 #import "UserLocationManager.h"
 #import "UserPin.h"
 #import "LabourType.h"
+#import "TimeSheet.h"
 
 
 #define kAssignedPinImage           "purple_pin.png"
@@ -52,12 +53,10 @@
     NSTimer *userLocationRefreshTimer;
     NSTimeInterval intervalSecs;
     
-   
-    NSDate *todayWorkTimeBegin;
-    NSDate *todayWorkTimeEnd;
-    
     AppContext *appContext;
     UserContext *userContext;
+    
+    NSMutableDictionary *dictTimesheets;
     
 }
 
@@ -117,7 +116,7 @@
     } else {
         
         // refresh calendar event view
-        [self getEventFromDate:selDate eventPageIndex:prevPageIndex];
+        [self getTimesheetByDateFromServer:selDate isShowEvent:YES eventPageIndex:prevPageIndex];
         
         // refresh UI
         [self updateCalendarUI];
@@ -134,7 +133,7 @@
         self.navigationItem.rightBarButtonItem = nil;
     }
     else {
-        [self getEventFromDate:selDate eventPageIndex:prevPageIndex];
+        [self getTimesheetByDateFromServer:selDate isShowEvent:YES eventPageIndex:prevPageIndex];
     }
 }
 
@@ -163,7 +162,17 @@
     
     // status bar text color change with white color
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+}
+
+// display Personal hospital connections in Timesheet window
+- (void)displayPersonalPospitalConnections:(NSDate *)selectedDate {
     
+    
+    int nConnections = 0;
+    
+    // TODO - get nConnections
+    
+    self.lblCalendarConnection.text = [NSString stringWithFormat:@"%d", nConnections];
 }
 
 
@@ -180,11 +189,15 @@
 // Back button event on Map UI
 - (IBAction) onMapBackClicked:(id)sendor {
     NSLog(@"Clicked Map back button");
+
+    
 }
 
 // Year button event on Calendar UI
 - (IBAction) onCalendarYearClicked:(id)sendor {
     NSLog(@"Clicked Calendar year button");
+    
+    
 }
 
 
@@ -235,7 +248,6 @@
 }
 
 
-
 - (void)initLocalVariables
 {
     isTestMode = kTestMode;
@@ -250,14 +262,13 @@
         // init arrUserPins
         [userContext initUserPinArray:nil];
         
+        // init user context
+        [userContext initUserContext];
     }
     
-    isMapviewMode = YES;
-    [self updateButtonUI];
-    
-    
-    // init calendar views
+    // init calendar view
     {
+        
         [self initCalendarView];
         
         selDate = self.calendar.currentDate;
@@ -265,32 +276,38 @@
         NSDate *todayDate = [NSDate date];
         NSInteger todayOffsetDays = [todayDate distanceInDaysToDate:selDate];
         
-        // int work begin-end time
-        {
-            NSString *szWorkTimeBegin = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
-                                         (int)todayDate.year, (int)todayDate.month, (int)todayDate.day, kDayWorkTime_BeginHour, kDayWorkTime_BeginMin];
-            NSString *szWorkTimeEnd = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
-                                       (int)todayDate.year, (int)todayDate.month, (int)todayDate.day, kDayWorkTime_EndHour, kDayWorkTime_EndMin];
-            
-            
-            NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-            [dateFormat setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-            
-            todayWorkTimeBegin = [[NSDate alloc] init];
-            todayWorkTimeEnd = [[NSDate alloc] init];
-            
-            todayWorkTimeBegin = [dateFormat dateFromString:szWorkTimeBegin];
-            todayWorkTimeEnd = [dateFormat dateFromString:szWorkTimeEnd];
-        }
-
-
+        NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+        [dateFormat setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+        
         dateOffsetDays = todayOffsetDays;
         
         [self initDayEventView];
         
         self.lblNoneTimesheets.hidden = YES;
-        
     }
+
+    
+    // init Map data
+    isMapviewMode = YES;
+    [self updateButtonUI];
+    
+    // download timesheets for current month
+    [self getTimesheetsByMonthFromServer:[NSDate date] successFunc:^(void) {
+        
+        // refresh Calendar
+        [self.calendar reloadData];
+        
+    } failureFunc:^(void) {
+        
+        // none process
+     
+    }];
+    
+   
+    
+    
+    
+    
     
     
     // init user location refresh
@@ -455,6 +472,10 @@
 
 - (BOOL)calendarHaveEvent:(JTCalendar *)calendar date:(NSDate *)date
 {
+    NSUInteger events = [userContext getTimesheetsCount:date];
+    
+    if (events > 0)
+        return YES;
     return NO;
 }
 
@@ -474,7 +495,7 @@
             dateOffsetDays ++;
     }
     
-    [self getEventFromDate:selDate eventPageIndex:prevPageIndex];
+    [self getTimesheetByDateFromServer:selDate isShowEvent:YES eventPageIndex:prevPageIndex];
 }
 
 - (void)calendarDidLoadPreviousPage
@@ -532,12 +553,6 @@
     [eventScrollerVC.view setFrame:eventRect ];
 }
 
-- (void)getEventFromDate:(NSDate *)date eventPageIndex:(NSUInteger)index
-{
-    [self getTimesheetByDateFromServer:date isShowEvent:YES eventPageIndex:index];
-}
-
-
 - (void)displayDayTimesheets:(TimeSheetPerDay* )daySheets eventPageIndex:(NSUInteger)eventPageIndex
 {
     DayEventViewController *nextVC = [timesheetVCArray objectAtIndex:eventPageIndex];
@@ -571,7 +586,6 @@
         TimeSheetPerDay *dayTimesheets = [[TimeSheetPerDay alloc] init];
         
         [dayTimesheets initWithParam:select_date arrTimeSheets:arrSheets];
-        [userContext addDayTimesheets:dayTimesheets];
         
         if (isShowEvent) {
             [self displayDayTimesheets:dayTimesheets eventPageIndex:eventPageIndex];
@@ -606,6 +620,52 @@
          HIDE_PROGRESS_WITH_FAILURE(failure);
          
      }];
+}
+
+// download timesheets for selected month
+// duration : before 7 days ~ after 7 days
+- (void)getTimesheetsByMonthFromServer:(NSDate*)selectedMonth successFunc:(void (^)(void))successFunc failureFunc:(void (^)(void))faillureFunc
+{
+    // create current date with month
+    NSDateComponents *comps = [[NSDateComponents alloc] init];
+    [comps setDay:1];
+    [comps setMonth:selectedMonth.month];
+    [comps setYear:selectedMonth.year];
+    
+    int user_id = [appContext loadUserID];
+    NSDate *newDate = [[NSCalendar currentCalendar] dateFromComponents:comps];
+    
+    NSDate *beginDate = [newDate dateBySubtractingDays:7];
+    NSDate *endDate = [newDate dateByAddingDays:38];    // 38 : 31+7
+    
+    
+    SHOW_PROGRESS(@"Fetching data...");
+    
+    [[ServerManager sharedManager] getTimesheetByDates:user_id beginDate:beginDate endDate:endDate success:^(NSMutableArray *arrSheets) {
+        HIDE_PROGRESS;
+        
+        // remove previous timesheets
+        [userContext removeTimesheets:beginDate endDate:endDate];
+        
+        // add timesheets
+        [userContext addTimesheets:arrSheets];
+        
+        // addinional function
+        successFunc();
+        
+    } failure:^(NSString *failture) {
+        
+        HIDE_PROGRESS_WITH_FAILURE(failture);
+        
+        faillureFunc();
+        
+    }];
+    
+    
+    
+    
+    
+    
 }
 
 
@@ -644,7 +704,7 @@
     NSDate *nextDate = [selDate dateByAddingDays:dateOffsetDays];
     
     // get event data for selected date
-    [self getEventFromDate:nextDate eventPageIndex:index];
+    [self getTimesheetByDateFromServer:nextDate isShowEvent:YES eventPageIndex:index];
     
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"kJTCalendarDaySelected" object:nextDate];

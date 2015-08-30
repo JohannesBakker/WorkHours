@@ -463,9 +463,9 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
                         
                         TimeSheet *oneSheet = [[TimeSheet alloc] init];
                         
-                        oneSheet.labourID = [[dictionary objectForKey:@"labour_id"] integerValue];
-                        oneSheet.jobID = [[dictionary objectForKey:@"job_id"] integerValue];
-                        oneSheet.labourTypeID = [[dictionary objectForKey:@"labour_type_id"] integerValue];
+                        oneSheet.labourID = [[dictionary objectForKey:@"labour_id"] intValue];
+                        oneSheet.jobID = [[dictionary objectForKey:@"job_id"] intValue];
+                        oneSheet.labourTypeID = [[dictionary objectForKey:@"labour_type_id"] intValue];
                         
                         valForObject = [dictionary objectForKey:@"start_time"] ;
                         if (valForObject == [NSNull null])
@@ -492,6 +492,98 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
                         else
                             oneSheet.jobDescription = (NSString *)valForObject;
 
+                        [arrResult addObject:oneSheet];
+                    } // end for
+                    
+                } else {
+                    // no jobs
+                }
+                
+                sucess(arrResult);
+            }
+            else {
+                failure(@"Invalid response");
+            }
+        }
+    }];
+    
+}
+
+- (void)getTimesheetByDates:(int)userId beginDate:(NSDate*)beginDate endDate:(NSDate*)endDate success:(void (^)(NSMutableArray *))sucess failure:(void (^)(NSString *))failure
+{
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd"];
+    
+    NSDateFormatter *timesheetFormatter = [[NSDateFormatter alloc] init];
+    [timesheetFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+    
+    
+    NSString *sessionId = [[AppContext sharedInstance] loadSession];
+    NSDictionary *params = @{@"user_id": [NSString stringWithFormat:@"%d", userId],
+                             @"begin_date": [dateFormatter stringFromDate:beginDate],
+                             @"end_date": [dateFormatter stringFromDate:endDate]};
+    
+    DEF_SERVERMANAGER
+    NSString *methodName = [NSString stringWithFormat:@"%@%@/%@", kAPIBaseUrlV2, sessionId, kMethodForGetTimesheetByDates];
+    
+    [manager postMethod:methodName params:params handler:^(NSString *responseStr, NSDictionary *response,  NSError *error) {
+        if (error != nil) {
+            failure([error localizedDescription]);
+            return;
+        }
+        
+        if (response == nil) {
+            if ([responseStr isEqualToString:@"Invalid Parameters\n"]) {
+                failure(@"Invalid Parameters!");
+            } else {
+                failure(@"Invalid response");
+            }
+            
+            return;
+            
+        } else {
+            
+            NSMutableArray *arrResponse = [response objectForKey:@"data"];
+            NSMutableArray *arrResult = [NSMutableArray array];
+            id valForObject;
+            
+            if (arrResponse) {
+                
+                if ([arrResponse isKindOfClass:[NSArray class]]) {
+                    
+                    for (NSDictionary *dictionary in arrResponse) {
+                        
+                        TimeSheet *oneSheet = [[TimeSheet alloc] init];
+                        
+                        oneSheet.labourID = [[dictionary objectForKey:@"labour_id"] intValue];
+                        oneSheet.jobID = [[dictionary objectForKey:@"job_id"] intValue];
+                        oneSheet.labourTypeID = [[dictionary objectForKey:@"labour_type_id"] intValue];
+                        
+                        valForObject = [dictionary objectForKey:@"start_time"] ;
+                        if (valForObject == [NSNull null])
+                            continue;
+                        oneSheet.startTime = [[NSDate alloc] init];
+                        oneSheet.startTime = [timesheetFormatter dateFromString:(NSString *)valForObject];
+                        
+                        valForObject = [dictionary objectForKey:@"end_time"] ;
+                        if (valForObject == [NSNull null])
+                            continue;
+                        oneSheet.endTime = [[NSDate alloc] init];
+                        oneSheet.endTime = [timesheetFormatter dateFromString:(NSString *)valForObject];
+                        
+                        
+                        valForObject = [dictionary objectForKey:@"company_name"] ;
+                        if (valForObject == [NSNull null])
+                            oneSheet.companyName = @"";
+                        else
+                            oneSheet.companyName = (NSString *)valForObject;
+                        
+                        valForObject = [dictionary objectForKey:@"description"] ;
+                        if (valForObject == [NSNull null])
+                            oneSheet.jobDescription = @"";
+                        else
+                            oneSheet.jobDescription = (NSString *)valForObject;
+                        
                         [arrResult addObject:oneSheet];
                     } // end for
                     
@@ -555,8 +647,8 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
                         
                         UserPin *onePin = [[UserPin alloc] init];
                         
-                        onePin.locationID = [[dictionary objectForKey:@"user_location_id"] integerValue];
-                        onePin.userID = [[dictionary objectForKey:@"user_id"] integerValue];
+                        onePin.locationID = [[dictionary objectForKey:@"user_location_id"] intValue];
+                        onePin.userID = [[dictionary objectForKey:@"user_id"] intValue];
                         onePin.lat = [[dictionary objectForKey:@"lat"] doubleValue];
                         onePin.lon = [[dictionary objectForKey:@"lon"] doubleValue];
                         

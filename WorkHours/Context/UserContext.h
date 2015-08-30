@@ -51,6 +51,12 @@
 // in use only map view for user pin
 @property (nonatomic, retain) NSMutableArray *arrTodayTimesheets;
 
+// used in calendar view
+//      object key : date (yyyy-MM-dd)
+//      object contetns : array of timesheet
+@property (nonatomic, retain) NSMutableDictionary *dictTimesheets;
+
+
 
 @property (nonatomic) BOOL isAppBackground;     // YES : in Background,   NO : in Foreground
 @property (nonatomic) BOOL isTestMode;
@@ -59,17 +65,23 @@
 @property (weak, nonatomic) NSObject <PinMapDelegate> *mapDelegate;
 @property (weak, nonatomic) NSObject <NewEventWindowDelegate> *addEventWindowDelegate;
 
+- (void)initUserContext;
 
 - (void)initLabourTypeArray:(NSMutableArray *)arrType;
-- (void)initTimesheetByDateArray:(NSMutableArray *)arrTimesheetPerDay;
 - (void)initTodayTimesheets:(NSMutableArray *)arrTimeSheets;
 - (void)initUserPinArray:(NSMutableArray *)arrPins;
 
-- (void)addTimesheet:(TimeSheet *)oneSheet;
-- (void)addDayTimesheets:(TimeSheetPerDay *)dayTimesheets;
-
-- (NSMutableArray*)getDayTimesheets:(NSDate *)date;
 - (TimeSheet *)getCoveredTimesheet:(NSDate *)pinCreateTime;
+
+
+
+- (void)addTimesheets:(NSMutableArray *)arrSheets;
+- (void)addTimesheets:(NSDate *)date arrSheets:(NSMutableArray *)arrSheets;
+- (void)removeTimesheets:(NSDate *)date;
+- (void)removeTimesheets:(NSDate *)beginDate endDate:(NSDate*)endDate;
+
+- (NSMutableArray *)getTimesheets:(NSDate *)date;
+- (NSUInteger)getTimesheetsCount:(NSDate *)date;
 
 @end
 
