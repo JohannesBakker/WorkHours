@@ -69,7 +69,7 @@
 - (void)removeTimesheets:(NSDate *)beginDate endDate:(NSDate*)endDate;
 
 - (TimeSheet *)getCoveredTimesheet:(NSDate *)pinCreateTime;
-- (NSMutableArray *)getTimesheets:(NSDate *)date;
+- (NSArray *)getTimesheets:(NSDate *)date;
 - (NSUInteger)getTimesheetsCount:(NSDate *)date;
 - (NSUInteger)getTimesheetsConnections:(NSDate *)date;
 

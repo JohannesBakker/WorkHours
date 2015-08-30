@@ -560,7 +560,7 @@
     DayEventViewController *nextVC = [timesheetVCArray objectAtIndex:eventPageIndex];
     
     BOOL isHasJobs = YES;
-    NSMutableArray *arrTimesheets = [userContext getTimesheets:date];
+    NSArray *arrTimesheets = [userContext getTimesheets:date];
     
     
     if (date != nil && arrTimesheets != nil && arrTimesheets.count > 0) {

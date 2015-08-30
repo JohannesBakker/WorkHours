@@ -256,7 +256,7 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
                         
                         Job *oneJob = [[Job alloc] init];
                         
-                        oneJob.jobID = [[dictionary objectForKey:@"job_id"] integerValue];
+                        oneJob.jobID = [[dictionary objectForKey:@"job_id"] intValue];
                         oneJob.distance = [[dictionary objectForKey:@"distance"] doubleValue];
                         
                         valForObject = [dictionary objectForKey:@"company_name"] ;
@@ -325,7 +325,7 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
                         
                         UserInfo *oneUser = [[UserInfo alloc] init];
                         
-                        oneUser.userID = [[dictionary objectForKey:@"user_id"] integerValue];
+                        oneUser.userID = [[dictionary objectForKey:@"user_id"] intValue];
                         
                         valForObject = [dictionary objectForKey:@"first_name"] ;
                         if (valForObject == [NSNull null])
@@ -393,7 +393,7 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
                         
                         LabourType *oneLabour = [[LabourType alloc] init];
                         
-                        oneLabour.typeID = [[dictionary objectForKey:@"labour_type_id"] integerValue];
+                        oneLabour.typeID = [[dictionary objectForKey:@"labour_type_id"] intValue];
                         
                         valForObject = [dictionary objectForKey:@"labour_type"] ;
                         if (valForObject == [NSNull null])

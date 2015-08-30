@@ -12,7 +12,9 @@
 
 @interface UserContext() {
     
-    
+    NSSortDescriptor *sortDescriptor;
+    NSMutableArray *sortDescriptors;
+   
 }
 
 @end
@@ -43,6 +45,10 @@
     dictTimesheets = [[NSMutableDictionary alloc] init];
     arrLabourType = [NSMutableArray array];
     arrUserPins = [NSMutableArray array];
+    
+    sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"startTime"
+                                                 ascending:YES];
+    sortDescriptors = [NSMutableArray arrayWithObject:sortDescriptor];
 }
 
 - (void)initLabourTypeArray:(NSMutableArray *)arrType
@@ -68,7 +74,7 @@
 
 - (TimeSheet *)getCoveredTimesheet:(NSDate *)pinCreateTime
 {
-    NSMutableArray *arrTimeSheets = [self getTimesheets:pinCreateTime];
+    NSArray *arrTimeSheets = [self getTimesheets:pinCreateTime];
     
     if (arrTimeSheets) {
         for (TimeSheet *sheet in arrTimeSheets) {
@@ -137,13 +143,19 @@
 }
 
 // get timesheets for selected date
-- (NSMutableArray *)getTimesheets:(NSDate *)date
+- (NSArray *)getTimesheets:(NSDate *)date
 {
     if (date == nil)
         return nil;
     
     NSString *szKey = [self keyOfTimesheets:date];
-    NSMutableArray *arrTimesheets = [dictTimesheets objectForKey:szKey];
+    NSArray *arrTimesheets = [dictTimesheets objectForKey:szKey];
+    
+    if (arrTimesheets) {
+        NSArray *sortedArray = [arrTimesheets sortedArrayUsingDescriptors:sortDescriptors];
+        return sortedArray;
+    }
+
     
     return arrTimesheets;
 }
@@ -184,7 +196,7 @@
 // get timesheets count for date
 - (NSUInteger)getTimesheetsCount:(NSDate *)date
 {
-    NSMutableArray *arrTimesheets = [self getTimesheets:date];
+    NSArray *arrTimesheets = [self getTimesheets:date];
     
     if (arrTimesheets != nil)
         return arrTimesheets.count;
@@ -195,7 +207,7 @@
 // get timesheets connection count for date
 - (NSUInteger)getTimesheetsConnections:(NSDate *)date
 {
-    NSMutableArray *arrTimesheets = [self getTimesheets:date];
+    NSArray *arrTimesheets = [self getTimesheets:date];
     NSUInteger nConnections = 0;
     
     if (arrTimesheets != nil) {
