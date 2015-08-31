@@ -13,7 +13,7 @@
 
 // User location refresh timer interval :  30 mins
 #if (kTestMode == YES)
-    #define kLocationRecordingIntervalMins                  (5)
+    #define kLocationRecordingIntervalMins                  (2)
 #else
     #define kLocationRecordingIntervalMins                  (30)
 #endif

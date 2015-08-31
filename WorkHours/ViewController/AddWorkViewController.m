@@ -189,8 +189,7 @@
         
         [[ServerManager sharedManager] getLabourType:^(NSMutableArray *arrLabourList) {
             HIDE_PROGRESS;
-            
-            
+                       
             
             [[UserContext sharedInstance] initLabourTypeArray:arrLabourList];
             [self loadTypeList:arrLabourList];

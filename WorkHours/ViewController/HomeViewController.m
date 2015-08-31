@@ -44,7 +44,6 @@
     
     GDIInfinitePageScrollViewController *eventScrollerVC;
     
-    NSInteger dateOffsetDays;
     NSUInteger maxEventPageIndex;
     NSUInteger prevPageIndex;
     
@@ -254,7 +253,6 @@
         
         // update Calendar UI
         [self updateCalendarUI];
-
     }
 }
 
@@ -273,18 +271,12 @@
     
     // init calendar view
     {
-        
         [self initCalendarView];
         
         selDate = self.calendar.currentDate;
         
-        NSDate *todayDate = [NSDate date];
-        NSInteger todayOffsetDays = [todayDate distanceInDaysToDate:selDate];
-        
         NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
         [dateFormat setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-        
-        dateOffsetDays = todayOffsetDays;
         
         [self initDayEventView];
         
@@ -298,8 +290,6 @@
     
     // download timesheets for current month
     [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
-    
-    // init user location refresh
 }
 
 
@@ -321,7 +311,6 @@
          [userContext initUserPinArray:arrPins];
          [userContext.mapDelegate displayUserLocation];
          [userContext.mapDelegate displayPins];
-         
          
      } failure:^(NSString *failure)
      {
@@ -471,19 +460,6 @@
 - (void)calendarDidDateSelected:(JTCalendar *)calendar date:(NSDate *)date {
     selDate = date;
     
-    NSDate *tmpDate = [NSDate date];
-    NSInteger todayOffsetDays = [tmpDate distanceInDaysToDate:selDate];
-    
-    dateOffsetDays = todayOffsetDays;
-    
-    NSInteger offsetMin = [tmpDate minutesBeforeDate:selDate];
-    dateOffsetDays = offsetMin / 1440;
-    
-    if (offsetMin % 1440 != 0) {
-        if (offsetMin >  0)
-            dateOffsetDays ++;
-    }
-    
     [self displayTimesheets:selDate eventPageIndex:prevPageIndex];
 }
 
@@ -542,13 +518,10 @@
     eventRect.origin.x = 0;
     eventRect.origin.y = 0;
     
-    
-    dateOffsetDays = 0;
     maxEventPageIndex = [eventScrollerVC countOfPages];
     if (maxEventPageIndex > 0)
         maxEventPageIndex --;
     prevPageIndex = 0;
-    
     
     [self.viewDayEvent addSubview:eventScrollerVC.view];
     [eventScrollerVC.view setFrame:eventRect ];
@@ -655,7 +628,7 @@
     NSString *curDateString = [newFormat stringFromDate:selDate];
     NSLog(@"Curr date  = %@\n", curDateString);
     
-    dateOffsetDays = 0;
+    NSInteger dateOffsetDays = 0;
     
     if (index == maxEventPageIndex) {
         if (prevPageIndex == (maxEventPageIndex - 1))
@@ -700,7 +673,6 @@
     }
     
     selDate = nextDate;
-    
     
     curDateString = [newFormat stringFromDate:nextDate];
     NSLog(@"seleted date  = %@\n", curDateString);

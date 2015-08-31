@@ -12,9 +12,11 @@
 
 @interface UserContext() {
     
-    NSSortDescriptor *sortDescriptor;
-    NSMutableArray *sortDescriptors;
-   
+    NSSortDescriptor *timesheetSortDescriptor;
+    NSMutableArray *timesheetSortDescriptors;
+    
+    NSSortDescriptor *userPinSortDescriptor;
+    NSMutableArray *userPinSortDescriptors;
 }
 
 @end
@@ -46,9 +48,15 @@
     arrLabourType = [NSMutableArray array];
     arrUserPins = [NSMutableArray array];
     
-    sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"startTime"
+    // init sort descriptor for timesheets
+    timesheetSortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"startTime"
                                                  ascending:YES];
-    sortDescriptors = [NSMutableArray arrayWithObject:sortDescriptor];
+    timesheetSortDescriptors = [NSMutableArray arrayWithObject:timesheetSortDescriptor];
+    
+    // init sor descriptor for userPins
+    userPinSortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"creationTime"
+                                                          ascending:YES];
+    userPinSortDescriptors = [NSMutableArray arrayWithObject:userPinSortDescriptor];
 }
 
 - (void)initLabourTypeArray:(NSMutableArray *)arrType
@@ -64,12 +72,26 @@
 
 - (void)initUserPinArray:(NSMutableArray *)arrPins
 {
-    if (arrPins == nil) {
+    if (arrUserPins) {
+        [arrUserPins removeAllObjects];
+    } else {
         arrUserPins = [NSMutableArray array];
     }
-    else {
-        arrUserPins = [[NSMutableArray alloc] initWithArray:arrPins];
+    
+    if (arrPins) {
+        NSArray *sortedArray = [arrPins sortedArrayUsingDescriptors:userPinSortDescriptors];
+        [arrUserPins addObjectsFromArray:sortedArray];
     }
+    
+    /*
+    if (arrPins == nil) {
+        //arrUserPins = [NSMutableArray array];
+    }
+    else {
+        //arrUserPins = [[NSMutableArray alloc] initWithArray:arrPins];
+        
+    }
+     */
 }
 
 - (TimeSheet *)getCoveredTimesheet:(NSDate *)pinCreateTime
@@ -152,10 +174,9 @@
     NSArray *arrTimesheets = [dictTimesheets objectForKey:szKey];
     
     if (arrTimesheets) {
-        NSArray *sortedArray = [arrTimesheets sortedArrayUsingDescriptors:sortDescriptors];
+        NSArray *sortedArray = [arrTimesheets sortedArrayUsingDescriptors:timesheetSortDescriptors];
         return sortedArray;
     }
-
     
     return arrTimesheets;
 }
@@ -217,10 +238,7 @@
         }
     }
     
-    
     return nConnections;
 }
-
-
 
 @end

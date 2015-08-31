@@ -22,7 +22,6 @@
 #define kAlertType_TodayWorking    2
 #define kAlertType_NoTimesheet      3
 
-
 @interface AppDelegate () <UserLocationManagerDelegate> {
     int nAlertViewType;
     double prevUserLat;
@@ -230,9 +229,6 @@
 }
 
 
-
-
-
 - (BOOL)isEqualLocation:(double)prevLat prevLon:(double)prevLon currLat:(double)currLat currLon:(double)currLon {
     
     CLLocation *prevLocation = [[CLLocation alloc]initWithLatitude:prevLat longitude:prevLon];
@@ -293,7 +289,6 @@
         }
     }
     else {
-//        return YES;
         
         title = @"Please allocate your time to a Job";
         message = @"No : Don't allocate,  Yes : allocate";
@@ -434,8 +429,6 @@
     
     NSDate *currTime = [NSDate date];
     
-    
-    
     // save user location to app context
     prevUserLat = [appContext loadUserLocationLat];
     prevUserLon = [appContext loadUserLocationLng];
@@ -503,7 +496,6 @@
      {
          // set date timesheets
          [userContext addTimesheets:selectDate arrSheets:arrSheets];
-
          
          [self checkLocationNotification:selectDate];
          
@@ -519,7 +511,6 @@
         // display push notification and return
         [self displayPushNotification];
     }
-    
 }
 
 
