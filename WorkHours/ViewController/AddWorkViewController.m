@@ -33,6 +33,9 @@
 
 #define kLabourId_UNASSIGNED      -1
 
+#define kAlertType_NoJob        1
+#define kAlertType_NoteEmpty    2
+
 @interface AddWorkViewController () <UITextFieldDelegate, UIScrollViewDelegate, SelLabourTypesViewControllerDelegate, JobSelectionViewControllerDelegate, SelAttendeesViewControllerDelegate, NewEventWindowDelegate> {
     BOOL bIsCollapsedStartDate;
     BOOL bIsCollapsedEndDate;
@@ -40,6 +43,9 @@
     BOOL bIsCollapsedAttendees;
     
     BOOL bIsShowedAttendeeList;
+    BOOL bIsShowedHint;
+    
+    int  nAlertType;
     
     CGFloat fInit_constraitTopOfAttendee;
     CGFloat fInit_constraitTopOfNote;
@@ -172,9 +178,11 @@
     // Note
     if (note.length > 0) {
         self.txtNote.text = note;
+        bIsShowedHint = NO;
     } else {
         self.txtNote.text = @"Note";
         self.txtNote.textColor = [UIColor lightGrayColor]; //optional
+        bIsShowedHint = YES;
     }
     
     [self.txtNote  setTextContainerInset:UIEdgeInsetsMake(0, 20, 0, 0)];
@@ -218,8 +226,20 @@
         NSString *title = @"Job assign";
         NSString *message = @"Please select the job";
         
-        UIAlertView *alertView = [ [UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"YES", nil ];
+        nAlertType = kAlertType_NoJob;
         
+        UIAlertView *alertView = [ [UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"YES", nil ];
+        [alertView show];
+        return;
+    }
+    
+    if (bIsShowedHint) {
+        NSString *title = @"Note empty";
+        NSString *message = @"Please input notes";
+        
+        nAlertType = kAlertType_NoteEmpty;
+        
+        UIAlertView *alertView = [ [UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"YES", nil ];
         [alertView show];
         return;
     }
@@ -562,41 +582,14 @@
             }
         }
         
+        typeArray = [UserContext sharedInstance].arrLabourType;
+        LabourType *item = [[UserContext sharedInstance] getLabourType:labourTypeId];;;
+        labourTypeId = item.typeID;
+        [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
         
-        // download labour type list from server
-        [[ServerManager sharedManager] getLabourType:^(NSMutableArray *arrLabourList) {
-//            HIDE_PROGRESS;
-
-            [userContext initLabourTypeArray:arrLabourList];
-            
-            /*
-            // load type list
-            {
-                if (arrLabourList != nil) {
-                    typeArray = arrLabourList;
-                    
-                    if (typeArray.count > 0) {
-                        LabourType *item = (LabourType *)[typeArray objectAtIndex:labourTypeId];
-                        labourTypeId = item.typeID;
-                        [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
-                    }
-                }
-            }
-             */
-            
-            typeArray = arrLabourList;
-            
-            LabourType *item = (LabourType *)[typeArray objectAtIndex:[self getLabourTypeIndex:labourTypeId]];
-            labourTypeId = item.typeID;
-            [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
-            
-            // download jobs and display selected job
-            [self downloadJobs];
-
-        } failure:^(NSString *failure) {
-            HIDE_PROGRESS_WITH_FAILURE(failure);
-            
-        }];
+        // download jobs and display selected job
+        [self downloadJobs];
+        
     } failure:^(NSString *failure) {
         HIDE_PROGRESS_WITH_FAILURE(failure);
         
@@ -625,25 +618,6 @@
     return formatDate;
 }
 
-
-
-// get labour type index from typeId
-- (NSUInteger)getLabourTypeIndex:(int)typeId {
-    
-    NSUInteger index = 0;
-    
-    if (typeArray != nil) {
-        for (index = 0; index < typeArray.count; index++) {
-            
-            LabourType *oneType = [typeArray objectAtIndex:index];
-            
-            if (oneType.typeID == typeId)
-                return index;
-        }
-    }
-    
-    return index;
-}
 
 // display Job
 - (void)displayJobs:(int)selJobId postUnit:(NSString *)postUnit jobNotes:(NSString *)jobNotes {
@@ -727,12 +701,20 @@
     
     if (buttonIndex == 1)
     {
-        JobSelectionViewController *controller = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"selJobVC"];
-        controller.delegate = self;
+        if (nAlertType == kAlertType_NoJob) {
+            JobSelectionViewController *controller = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"selJobVC"];
+            controller.delegate = self;
+            
+            controller.isTestMode = isTestMode;
+            
+            [self.navigationController pushViewController:controller animated:YES];
+            
+        }
+        else if (nAlertType == kAlertType_NoteEmpty) {
+            // set focus to note
+            [self.txtNote becomeFirstResponder];
+        }
         
-        controller.isTestMode = isTestMode;
-        
-        [self.navigationController pushViewController:controller animated:YES];
     }
 }
 
@@ -742,9 +724,11 @@
 
 - (void)textViewDidBeginEditing:(UITextView *)textView
 {
-    if ([textView.text isEqualToString:@"Note"]) {
+    if (bIsShowedHint == YES
+        /*[textView.text isEqualToString:@"Note"]*/) {
         textView.text = @"";
         textView.textColor = [UIColor blackColor]; //optional
+        bIsShowedHint = NO;
     }
     [textView becomeFirstResponder];
 }
@@ -754,6 +738,7 @@
     if ([textView.text isEqualToString:@""]) {
         textView.text = @"Note";
         textView.textColor = [UIColor lightGrayColor]; //optional
+        bIsShowedHint = YES;
     }
     [textView resignFirstResponder];
 }
@@ -875,7 +860,7 @@
     self.btnStart.enabled = YES;
     self.btnEnd.enabled = YES;
     
-    LabourType *item = (LabourType *)[typeArray objectAtIndex:[self getLabourTypeIndex:typeId]];
+    LabourType *item = [[UserContext sharedInstance] getLabourType:typeId];
     labourTypeId = item.typeID;
     [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
     
@@ -901,20 +886,6 @@
     isNewEventMode = isNewEvent;
     
     jobId = selJobId;
-    
-    /*
-    Job *selJob = [[UserContext sharedInstance] getJob:jobId];
-    
-    if (selJob) {
-        jobPostUnit = selJob.companyName;
-        jobPostNotes = selJob.notes;
-        
-    } else {
-        jobPostUnit = @"";
-        jobPostNotes = @"";
-    }
-     */
-    
     
     isAllDay = NO;
     

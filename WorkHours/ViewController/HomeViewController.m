@@ -124,6 +124,13 @@
     }
 }
 
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
+    // status bar text color change with default color
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
@@ -153,7 +160,7 @@
     // change view color with mapTitle color
     self.view.backgroundColor = self.viewMapTitle.backgroundColor;
     
-    // status bar text color change with white color
+    // status bar text color change with default color
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
 }
 
@@ -275,9 +282,29 @@
         
         self.lblNoneTimesheets.hidden = YES;
     }
+
     
-    // download timesheets for current month
-    [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
+    SHOW_PROGRESS(@"Fetching data...");
+
+    [[ServerManager sharedManager] getLabourType:^(NSMutableArray *arrLabourList) {
+        
+        HIDE_PROGRESS;
+        
+        [userContext initLabourTypeArray:arrLabourList];
+        
+        // download timesheets for current month
+        [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
+        
+    } failure:^(NSString *failure) {
+        
+        HIDE_PROGRESS_WITH_FAILURE(failure);
+        
+        // download timesheets for current month
+        [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
+    }];
+
+    
+    
     
     // init Map data
     isMapviewMode = YES;
@@ -528,11 +555,8 @@
     BOOL isHasJobs = YES;
     NSArray *arrTimesheets = [userContext getTimesheets:date];
     
-    
-    if (date != nil && arrTimesheets != nil && arrTimesheets.count > 0) {
-        [nextVC initWithTimesheets:date TimesheetList:arrTimesheets];
-    }
-    else {
+    [nextVC initWithTimesheets:date TimesheetList:arrTimesheets];
+    if (arrTimesheets == nil || arrTimesheets.count == 0) {
         isHasJobs = NO;
     }
     
@@ -581,10 +605,10 @@
     NSDate *beginDate = [newDate dateBySubtractingDays:7];
     NSDate *endDate = [newDate dateByAddingDays:38];    // 38 : 31+7
     
-    
     SHOW_PROGRESS(@"Fetching data...");
     
     [[ServerManager sharedManager] getTimesheetByDates:user_id beginDate:beginDate endDate:endDate success:^(NSMutableArray *arrSheets) {
+        
         HIDE_PROGRESS;
         
         // remove previous timesheets
@@ -601,13 +625,32 @@
             [self displayTimesheets:selDate eventPageIndex:prevPageIndex];
         }
         
+        // download labour types
+        //[self getLabourTypesFromServer];
         
-    } failure:^(NSString *failture) {
         
-        HIDE_PROGRESS_WITH_FAILURE(failture);
+    } failure:^(NSString *failure) {
+        
+        HIDE_PROGRESS_WITH_FAILURE(failure);
+        
+        // download labour types
+        [self getLabourTypesFromServer];
         
     }];
 }
+
+// download labour types from server
+- (void)getLabourTypesFromServer {
+    [[ServerManager sharedManager] getLabourType:^(NSMutableArray *arrLabourList) {
+        
+        HIDE_PROGRESS;
+        [userContext initLabourTypeArray:arrLabourList];
+        
+    } failure:^(NSString *failure) {
+        HIDE_PROGRESS_WITH_FAILURE(failure);
+    }];
+}
+
 
 
 #pragma GDIInfinitePageScrollViewControllerDelegate
@@ -682,20 +725,11 @@
     UIStoryboard *stb = [UIStoryboard storyboardWithName:@"Main" bundle: nil];
     AddWorkViewController *vc = [stb instantiateViewControllerWithIdentifier:@"addWorkViewController"];
     
-    /*
-    vc.startTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:startTime];
-    vc.endTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:endTime];
-    vc.labourTypeId = initLabourTypeId;
-    vc.isTestMode = isTestMode;
-    [self.navigationController pushViewController:vc animated:YES];
-     */
-    
     vc.isTestMode = isTestMode;
     
     
     [vc createNewEvent:startTime eventEndTime:endTime];
     [self.navigationController pushViewController:vc animated:YES];
-    
 }
 
 

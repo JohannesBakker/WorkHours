@@ -51,7 +51,10 @@
     // remove tableviewcell separator line
     self.viewJobs.separatorStyle = UITableViewCellSeparatorStyleNone;
     
-    [self getJobListFromServer];
+    arrJobs = [UserContext sharedInstance].arrJobs;
+    
+    [self resortJobs];
+    [self.viewJobs reloadData];
     
 }
 
@@ -80,40 +83,6 @@
     [self resortJobs];
     [self.viewJobs reloadData];
 
-}
-
-- (void)getJobListFromServer {
-    
-    SHOW_PROGRESS(@"Fetching data...");
-    
-    
-    double lat = [[AppContext sharedInstance] loadUserLocationLat];
-    double lon = [[AppContext sharedInstance] loadUserLocationLng];
-    
-    if (isTestMode) {
-        lat = -33.831370;
-        lon = 151.200818;
-    }
-    
-    
-    [ [ServerManager sharedManager] getJobsByLocation:lat lon:lon success:^(NSMutableArray *arrJobList)
-     {
-         HIDE_PROGRESS;
-         //arrJobs = [[NSMutableArray alloc] initWithArray:arrJobList];
-         
-         [[UserContext sharedInstance] initJobs:arrJobList];
-         arrJobs = [UserContext sharedInstance].arrJobs;
-         
-         [self resortJobs];
-         [self.viewJobs reloadData];
-
-         
-     } failure:^(NSString *failure)
-     {
-         HIDE_PROGRESS_WITH_FAILURE(failure);         
-         
-     } ];
-    
 }
 
 - (void)resortJobs {

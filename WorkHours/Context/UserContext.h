@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "TimeSheet.h"
 #import "Job.h"
+#import "LabourType.h"
 
 #define kTestMode           YES //YES //NO
 
@@ -68,6 +69,7 @@
 - (void)initUserPinArray:(NSMutableArray *)arrPins;
 - (void)initJobs:(NSMutableArray *)arrJobList;
 
+- (LabourType*)getLabourType:(int)typeId;
 - (Job *)getJob:(int)jobId;
 
 - (void)addTimesheets:(NSMutableArray *)arrSheets;

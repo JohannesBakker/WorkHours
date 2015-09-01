@@ -8,7 +8,6 @@
 
 #import "UserContext.h"
 #import "NSDate+Utilities.h"
-#import "LabourType.h"
 
 @interface UserContext() {
     
@@ -101,11 +100,32 @@
 }
 
 //********************************
+//  functions of LabourType
+//********************************
+- (LabourType*)getLabourType:(int)typeId
+{
+    if (arrLabourType != nil && arrLabourType.count > 0) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"typeID == %d", typeId];
+        NSArray *filteredArray = [arrLabourType filteredArrayUsingPredicate:predicate];
+        
+        if (filteredArray != nil && filteredArray.count > 0) {
+            LabourType *selType = [filteredArray objectAtIndex:0];
+            
+            return selType;
+        }
+    }
+    return nil;
+}
+
+//********************************
 //  functions of Jobs
 //********************************
 - (Job *)getJob:(int)jobId
 {
-    if (arrJobs != nil && arrJobs.count > 0) {
+    if (jobId != kJobId_UNASSIGNED
+        && arrJobs != nil
+        && arrJobs.count > 0) {
+        
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"jobID == %d", jobId];
         NSArray *filteredArray = [arrJobs filteredArrayUsingPredicate:predicate];
         
