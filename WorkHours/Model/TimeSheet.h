@@ -23,7 +23,7 @@
 @property (nonatomic) int jobID;                                                                   // Job ID
 @property (nonatomic, retain) NSString *companyName;                                       // company name
 @property (nonatomic) int labourTypeID;                                                                   // labour basis id
-@property (nonatomic, retain) NSString *jobDescription;                                       // description
+@property (nonatomic, retain) NSString *labourDescription;                                       // description
 
 
 

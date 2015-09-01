@@ -196,13 +196,6 @@
 }
 */
 
-// Back button event on Map UI
-- (IBAction) onMapBackClicked:(id)sendor {
-    NSLog(@"Clicked Map back button");
-
-    
-}
-
 // Year button event on Calendar UI
 - (IBAction) onCalendarYearClicked:(id)sendor {
     NSLog(@"Clicked Calendar year button");
@@ -282,14 +275,14 @@
         
         self.lblNoneTimesheets.hidden = YES;
     }
-
+    
+    // download timesheets for current month
+    [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
     
     // init Map data
     isMapviewMode = YES;
     [self updateButtonUI];
     
-    // download timesheets for current month
-    [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
 }
 
 
@@ -364,7 +357,7 @@
     [tmpView initWithTimeJobMark:[timeFormat stringFromDate:sheet.startTime]
                          endTime:[timeFormat stringFromDate:sheet.endTime]
                         jobTitle:jobTitle
-                      jobContent:sheet.jobDescription];
+                      jobContent:sheet.labourDescription];
     
     [[UIManager sharedInstance] applyViewRoundRect:view cornerRadius:5];
     
@@ -689,11 +682,20 @@
     UIStoryboard *stb = [UIStoryboard storyboardWithName:@"Main" bundle: nil];
     AddWorkViewController *vc = [stb instantiateViewControllerWithIdentifier:@"addWorkViewController"];
     
+    /*
     vc.startTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:startTime];
     vc.endTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:endTime];
-    vc.initLabourTypeId = initLabourTypeId;
+    vc.labourTypeId = initLabourTypeId;
     vc.isTestMode = isTestMode;
     [self.navigationController pushViewController:vc animated:YES];
+     */
+    
+    vc.isTestMode = isTestMode;
+    
+    
+    [vc createNewEvent:startTime eventEndTime:endTime];
+    [self.navigationController pushViewController:vc animated:YES];
+    
 }
 
 
@@ -744,6 +746,19 @@
 - (void)gotoNewEventWindow:(NSDate *)startTime endTime:(NSDate*)endTime initLabourTypeId:(int)initLabourTypeId
 {
     [self gotoAddNewEvent:startTime endTime:endTime initLabourTypeId:initLabourTypeId];
+}
+
+- (void)gotoEditEventWindow:(TimeSheet *)sheet
+{
+    UIStoryboard *stb = [UIStoryboard storyboardWithName:@"Main" bundle: nil];
+    AddWorkViewController *vc = [stb instantiateViewControllerWithIdentifier:@"addWorkViewController"];
+    
+    
+    vc.isTestMode = isTestMode;
+    [vc editSelectEvent:sheet];
+    
+    [self.navigationController pushViewController:vc animated:YES];
+
 }
 
 @end

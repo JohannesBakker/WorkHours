@@ -443,12 +443,14 @@
     if (isGettedLocation == NO) {
         isGettedLocation = YES;
         
+        
+        
         [[ServerManager sharedManager] insertUserPin:[appContext loadUserID]
                                                  lat:new_lat
                                                  lon:new_lon
                                     creationDateTime:prevRecordTime success:^(BOOL result)
         {
-            // lownload timesheet
+            // download timesheet
             [self downloadTimesheets:prevRecordTime];
             [self displayUserPins];
             
@@ -456,7 +458,7 @@
          {
              NSLog(@"location recording failed, %@ on %@\n", failure, [dateFormat stringFromDate:prevRecordTime]);
              
-             // lownload timesheet
+             // download timesheet
              [self downloadTimesheets:prevRecordTime];
              [self displayUserPins];
          }];
@@ -512,6 +514,7 @@
         [self displayPushNotification];
     }
 }
+
 
 
 @end

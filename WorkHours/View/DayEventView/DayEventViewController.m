@@ -12,6 +12,7 @@
 #import "LabourType.h"
 #import "Constant.h"
 #import "UIManager.h"
+#import "AddWorkViewController.h"
 
 #define kTimeJobCellHeight          50.0f
 #define kSeperateLaborColor       [UIColor brownColor]
@@ -42,7 +43,6 @@
     
     jobDate = [[NSDate alloc] init];
     hadJobs = NO;
-    
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -146,7 +146,7 @@
     
     if (currSheet.labourTypeID == kLabourTypeId_Labour) {
         labourColor = kSeperateLaborColor;
-        description = currSheet.jobDescription;
+        description = currSheet.labourDescription;
     } else {
         labourColor = kSeperateTravelColor;
         description = [LabourType labourTypeName:currSheet.labourTypeID];
@@ -168,6 +168,17 @@
     CGFloat height = kTimeJobCellHeight;
     
     return height;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    TimeSheet *sheet = [arrTimesheets objectAtIndex:indexPath.row];
+    UserContext *userContext = [UserContext sharedInstance];
+    
+    if (userContext.mapDelegate) {
+        if ([userContext.mapDelegate respondsToSelector:@selector(gotoEditEventWindow:)]) {
+            [userContext.mapDelegate gotoEditEventWindow:sheet];
+        }
+    }
 }
 
 

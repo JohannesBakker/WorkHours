@@ -8,12 +8,13 @@
 
 #import <Foundation/Foundation.h>
 #import "TimeSheet.h"
+#import "Job.h"
 
 #define kTestMode           YES //YES //NO
 
 // User location refresh timer interval :  30 mins
 #if (kTestMode == YES)
-    #define kLocationRecordingIntervalMins                  (2)
+    #define kLocationRecordingIntervalMins                  (5)
 #else
     #define kLocationRecordingIntervalMins                  (30)
 #endif
@@ -49,6 +50,9 @@
 //      object contetns : array of timesheet
 @property (nonatomic, retain) NSMutableDictionary *dictTimesheets;
 
+//  arrJobs : array of Jobs for user near
+@property (nonatomic, retain) NSMutableArray *arrJobs;
+
 
 
 @property (nonatomic) BOOL isAppBackground;     // YES : in Background,   NO : in Foreground
@@ -62,6 +66,9 @@
 
 - (void)initLabourTypeArray:(NSMutableArray *)arrType;
 - (void)initUserPinArray:(NSMutableArray *)arrPins;
+- (void)initJobs:(NSMutableArray *)arrJobList;
+
+- (Job *)getJob:(int)jobId;
 
 - (void)addTimesheets:(NSMutableArray *)arrSheets;
 - (void)addTimesheets:(NSDate *)date arrSheets:(NSMutableArray *)arrSheets;
@@ -83,6 +90,7 @@
 - (void)displayUserLocation;
 - (void)displayPins;
 - (void)gotoNewEventWindow:(NSDate *)startTime endTime:(NSDate*)endTime initLabourTypeId:(int)initLabourTypeId;
+- (void)gotoEditEventWindow:(TimeSheet *)sheet;
 
 @end
 

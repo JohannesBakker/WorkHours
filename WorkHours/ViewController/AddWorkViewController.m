@@ -31,17 +31,15 @@
 #define kMultiPickerViewWidth [UIScreen mainScreen].bounds.size.width
 #define kMultiPickerViewHeight 260.0f
 
+#define kLabourId_UNASSIGNED      -1
+
 @interface AddWorkViewController () <UITextFieldDelegate, UIScrollViewDelegate, SelLabourTypesViewControllerDelegate, JobSelectionViewControllerDelegate, SelAttendeesViewControllerDelegate, NewEventWindowDelegate> {
-    BOOL isCollapsedStartDate;
-    BOOL isCollapsedEndDate;
-    BOOL isCollapsedType;
-    BOOL isCollapsedAttendees;
+    BOOL bIsCollapsedStartDate;
+    BOOL bIsCollapsedEndDate;
+    BOOL bIsCollapsedType;
+    BOOL bIsCollapsedAttendees;
     
-    BOOL isShowedAttendeeList;
-    
-    BOOL isAllDay;
-    
-    int selectedLabourTypes;
+    BOOL bIsShowedAttendeeList;
     
     CGFloat fInit_constraitTopOfAttendee;
     CGFloat fInit_constraitTopOfNote;
@@ -50,16 +48,22 @@
     CGFloat init_TopConstraint;
     CGSize g_keyboardSize;
     
-    int selectedJobId;
-    NSString *selectedJobPostUnit;
-    NSString *selectedJobNote;
-    
     NSMutableArray *typeArray;
     
     NSMutableArray *attendeeArray;
     NSMutableArray *attendeeSeletedArray;
     NSMutableDictionary *attendeeSelectionStates;
+    
+    AppContext *appContext;
+    UserContext *userContext;
+    
+    UIManager *uiManager;
 }
+
+// Title UI controls
+@property (retain, nonatomic) IBOutlet UIButton *btnAddDone;
+@property (retain, nonatomic) IBOutlet UILabel *lblTitle;
+
 
 @property (retain, nonatomic) IBOutlet UIView *viewJobBackground;
 @property (retain, nonatomic) IBOutlet UIView *viewJob;
@@ -101,25 +105,54 @@
 
 @implementation AddWorkViewController
 
-@synthesize startTime, endTime, isTestMode;
-@synthesize initLabourTypeId;
+//@synthesize startTime, endTime, isTestMode;
+//@synthesize initLabourTypeId;
+@synthesize isNewEventMode;
+@synthesize jobId, jobPostUnit, jobPostNotes;
+@synthesize isAllDay;
+@synthesize startTime, endTime;
+@synthesize labourTypeId;
+@synthesize note;
+@synthesize isTestMode;
+
 
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     // Do any additional setup after loading the view.
-    [[UIManager sharedInstance] applyDefaultTextViewStyle:self.txtNote];
-    [[UIManager sharedInstance] applyViewBorder:self.viewStartDate borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
-    [[UIManager sharedInstance] applyViewBorder:self.viewEndDate borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
-    [[UIManager sharedInstance] applyViewBorder:self.viewType borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
-    [[UIManager sharedInstance] applyViewBorder:self.viewAttendees borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
-    [[UIManager sharedInstance] applyViewBorder:self.viewJob borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
-    [[UIManager sharedInstance] applyViewBorder:self.viewJobBackground borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
-    [[UIManager sharedInstance]  applyDisableCustomButtonStyle:self.btnStart];
-    [[UIManager sharedInstance]  applyDisableCustomButtonStyle:self.btnEnd];
     
-    selectedLabourTypes = 0;
+    // UI object style setting
+    uiManager = [UIManager sharedInstance];
     
+    [uiManager applyDefaultTextViewStyle:self.txtNote];
+    [uiManager applyViewBorder:self.viewStartDate borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    [uiManager applyViewBorder:self.viewEndDate borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    [uiManager applyViewBorder:self.viewType borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    [uiManager applyViewBorder:self.viewAttendees borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    [uiManager applyViewBorder:self.viewJob borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    [uiManager applyViewBorder:self.viewJobBackground borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    [uiManager applyDisableCustomButtonStyle:self.btnStart];
+    [uiManager applyDisableCustomButtonStyle:self.btnEnd];
+    
+    
+    //*******************
+    // customize UI
+    //*******************
+    
+    // customize Title
+    if (isNewEventMode) {
+        self.lblTitle.text = @"New Event";
+        [self.btnAddDone setTitle:@"Add" forState:UIControlStateNormal];
+    } else {
+        self.lblTitle.text = @"Edit Event";
+        [self.btnAddDone setTitle:@"Done" forState:UIControlStateNormal];
+    }
+    
+    // All-day UI
+    [self.switchAllDay setOn:isAllDay];
+    
+    // Start/End Time UI
     self.dtPickerStart.datePickerMode = UIDatePickerModeTime;
     self.dtPickerEnd.datePickerMode = UIDatePickerModeTime;
     
@@ -129,29 +162,38 @@
     self.lblDate.text = [self getDateWithFormat:startTime];
     self.lblStartTime.text = [self getTimeWithFormat:startTime];
     self.lblEndTime.text = [self getTimeWithFormat:endTime];
+    
     [self.dtPickerStart addTarget:self action:@selector(dateIsChanged:) forControlEvents:UIControlEventValueChanged];
     [self.dtPickerEnd addTarget:self action:@selector(dateIsChanged:) forControlEvents:UIControlEventValueChanged];
     
-    // UITextView placeholder
-    self.txtNote.text = @"Note";
-    self.txtNote.textColor = [UIColor lightGrayColor]; //optional
+    self.btnStart.enabled = !isAllDay;
+    self.btnEnd.enabled = !isAllDay;
+    
+    // Note
+    if (note.length > 0) {
+        self.txtNote.text = note;
+    } else {
+        self.txtNote.text = @"Note";
+        self.txtNote.textColor = [UIColor lightGrayColor]; //optional
+    }
+    
     [self.txtNote  setTextContainerInset:UIEdgeInsetsMake(0, 20, 0, 0)];
+    
     
     // init local variables
     [self initLocalVariable];
-    
     
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:NO];
-    [UserContext sharedInstance].isNewEventWindow = YES;
+    [uiManager isVisibleStatusBar:self.navigationController isShow:NO];
+    userContext.isNewEventWindow = YES;
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    [UserContext sharedInstance].isNewEventWindow = NO;
+    userContext.isNewEventWindow = NO;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -159,78 +201,247 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)initLocalVariable
+//*****************************
+// Action functions
+//*****************************
+
+// Cancel clicking event
+- (IBAction)onCancelClicked:(id)sender {
+    [self dismiss];
+}
+
+// Add/Done clicking event
+- (IBAction)onAddDoneClicked:(id)sender {
+    static NSUInteger insertCounter = 0;
+    
+    if (jobId == kJobId_UNASSIGNED) {
+        NSString *title = @"Job assign";
+        NSString *message = @"Please select the job";
+        
+        UIAlertView *alertView = [ [UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"YES", nil ];
+        
+        [alertView show];
+        return;
+    }
+    
+    // event add/change
+    if (isNewEventMode) {
+        
+        // add new events
+        SHOW_PROGRESS(@"Fetching data...");
+ 
+        insertCounter = 0;
+
+        int currUserId = [appContext loadUserID];
+        
+        if (isAllDay) {
+            NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+            dateFormat.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+            
+            NSString *startDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
+                                       (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_BeginHour, kDayWorkTime_BeginMin];
+            NSString *endDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
+                                     (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_EndHour, kDayWorkTime_EndMin];
+            
+            startTime = [dateFormat dateFromString:startDateTime];
+            endTime = [dateFormat dateFromString:endDateTime];
+        }
+        
+        
+        NSString *sheetDescription = self.txtNote.text;
+        
+        [[ServerManager sharedManager] insertTimesheet:currUserId
+                                             startTime:startTime
+                                               endTime:endTime
+                                                 jobID:jobId
+                                           companyName:jobPostUnit
+                                          labourTypeId:labourTypeId
+                                                 notes:sheetDescription
+                                               success:^(BOOL result)
+         {
+             
+             // add other attendees
+             
+             if (attendeeSeletedArray.count > 0)
+             {
+                 
+                 for (NSUInteger i = 0; i < attendeeSeletedArray.count; i++)
+                 {
+                     NSString *currObj = [attendeeSeletedArray objectAtIndex:i];
+                     
+                     [[ServerManager sharedManager] insertTimesheet:(int)[currObj integerValue]
+                                                          startTime:startTime
+                                                            endTime:endTime
+                                                              jobID:jobId
+                                                        companyName:jobPostUnit
+                                                       labourTypeId:labourTypeId
+                                                              notes:sheetDescription
+                                                            success:^(BOOL result)
+                      {
+                          
+                          // add other attendees
+                          insertCounter = insertCounter + 1;
+                          if (insertCounter >= attendeeSeletedArray.count) {
+                              
+                              HIDE_PROGRESS;
+                              
+                              [self dismiss];
+                              
+                          }
+                          
+                      } failure:^(NSString *failure)
+                      {
+                          HIDE_PROGRESS_WITH_FAILURE(failure);
+                      } ];
+                 }
+                 
+             }
+             else
+             {
+                 HIDE_PROGRESS;
+                 [self dismiss];
+             }
+         } failure:^(NSString *failure)
+         {
+             HIDE_PROGRESS;
+         } ];
+    }
+    else {
+        // change event
+        
+        // TODO - change events
+    }
+}
+
+
+// background clicking event
+- (IBAction)onBkButtonClicked:(id)sender {
+    [self hideKeyboard];
+}
+
+// Job clicking event
+- (IBAction)onJobClicked:(id)sender {
+    
+    JobSelectionViewController *controller = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"selJobVC"];
+    controller.delegate = self;
+    
+    controller.isTestMode = YES;
+    
+    [self.navigationController pushViewController:controller animated:YES];
+}
+
+// All-day clicking event
+- (IBAction)onChangedAllDay:(id)sender
 {
-    fInit_constraitTopOfAttendee = self.constraitTopOfAttendee.constant;
-    fInit_constraitTopOfNote = self.constraitTopOfNote.constant;
+    [self hideKeyboard];
     
-    isCollapsedStartDate = YES;
-    isCollapsedEndDate = YES;
-    isCollapsedType = YES;
-    isCollapsedAttendees = YES;
+    isAllDay = [sender isOn];
     
-    isShowedAttendeeList = NO;
-    
-    isAllDay = NO;
-    
-    selectedJobId = kJobId_UNASSIGNED;
-    selectedJobPostUnit = @"";
-    selectedJobNote = @"";
-    
-    [UserContext sharedInstance].addEventWindowDelegate = self;
-    
-    
-    [self registerForKeyboardNotifications];
-
-    // get user list and labour type list
-    SHOW_PROGRESS(@"Fetching data...");
-    [[ServerManager sharedManager] getUserList:^(NSMutableArray *arrUserList) {
-        [self loadAttendess:arrUserList];
+    if (isAllDay == YES) {
         
-        [[ServerManager sharedManager] getLabourType:^(NSMutableArray *arrLabourList) {
-            HIDE_PROGRESS;
-                       
+        // hide date selection
+        
+        [UIView animateWithDuration:kAnimationDuration animations:^{
             
-            [[UserContext sharedInstance] initLabourTypeArray:arrLabourList];
-            [self loadTypeList:arrLabourList];
+            if (bIsCollapsedStartDate == NO) {
+                self.dtPickerStart.hidden = YES;
+                self.constraitTopOfEndDate.constant = 0.0f;
+                self.lblStartTime.textColor = [UIColor blackColor];
+                
+                bIsCollapsedStartDate = YES;
+            }
             
-            selectedLabourTypes = initLabourTypeId;
-            LabourType *item = (LabourType *)[typeArray objectAtIndex:[self getLabourTypeIndex:initLabourTypeId]];
-            selectedLabourTypes = item.typeID;
-            [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
-
-            
-        } failure:^(NSString *failure) {
-            HIDE_PROGRESS_WITH_FAILURE(failure);
-            
+            if (bIsCollapsedEndDate == NO) {
+                self.dtPickerEnd.hidden = YES;
+                self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
+                self.lblEndTime.textColor = [UIColor blackColor];
+                
+                bIsCollapsedEndDate = YES;
+            }
+        } completion:^(BOOL finished) {
         }];
-    } failure:^(NSString *failure) {
-        HIDE_PROGRESS_WITH_FAILURE(failure);
-        
+    }
+    
+    self.btnStart.enabled = !isAllDay;
+    self.btnEnd.enabled = !isAllDay;
+    
+    // change color of start/end time label
+    if (isAllDay) {
+        self.lblStartTime.textColor = kButtonDisableTitleColor;
+        self.lblEndTime.textColor = kButtonDisableTitleColor;
+    }
+    else {
+        self.lblStartTime.textColor = [UIColor blackColor];
+        self.lblEndTime.textColor = [UIColor blackColor];
+    }
+}
+
+
+// Start time clicking event
+- (IBAction)onStartDateClicked:(id)sender {
+    [self hideKeyboard];
+    
+    [UIView animateWithDuration:kAnimationDuration animations:^{
+        if (bIsCollapsedStartDate) {
+            self.dtPickerStart.hidden = NO;
+            self.constraitTopOfEndDate.constant = kDatePickerHeight;
+            self.lblStartTime.textColor = [UIColor redColor];
+            
+            bIsCollapsedStartDate = NO;
+            
+            if (bIsCollapsedEndDate == NO) {
+                self.dtPickerEnd.hidden = YES;
+                self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
+                self.lblEndTime.textColor = [UIColor blackColor];
+                
+                bIsCollapsedEndDate = YES;
+            }
+        }
+        else
+        {
+            self.dtPickerStart.hidden = YES;
+            self.constraitTopOfEndDate.constant = 0.0f;
+            self.lblStartTime.textColor = [UIColor blackColor];
+            
+            bIsCollapsedStartDate = YES;
+        }
+    } completion:^(BOOL finished) {
     }];
 }
 
-- (NSString *)getDateWithFormat:(NSDate *)date {
-    NSString *formatDate = [NSString stringWithFormat:@"%@", date];
-    formatDate = [NSString stringWithFormat:@"%@", [date toLocalTime]];
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"dd MMM yyyy"];
-    formatDate = [dateFormatter stringFromDate:date];
+// End time clicking event
+- (IBAction)onEndDateClicked:(id)sender {
+    [self hideKeyboard];
     
-    return formatDate;
+    [UIView animateWithDuration:kAnimationDuration animations:^{
+        if (bIsCollapsedEndDate) {
+            self.dtPickerEnd.hidden = NO;
+            self.constraitTopOfAttendee.constant = kDatePickerHeight;
+            self.lblEndTime.textColor = [UIColor redColor];
+            
+            bIsCollapsedEndDate = NO;
+            
+            if (bIsCollapsedStartDate == NO) {
+                self.dtPickerStart.hidden = YES;
+                self.constraitTopOfEndDate.constant = 0.0f;
+                self.lblStartTime.textColor = [UIColor blackColor];
+                
+                bIsCollapsedStartDate = YES;
+            }
+        }
+        else
+        {
+            self.dtPickerEnd.hidden = YES;
+            self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
+            self.lblEndTime.textColor = [UIColor blackColor];
+            
+            bIsCollapsedEndDate = YES;
+        }
+    } completion:^(BOOL finished) {
+    }];
 }
 
-- (NSString *)getTimeWithFormat:(NSDate *)date {
-    NSString *formatDate = [NSString stringWithFormat:@"%@", date];
-    formatDate = [NSString stringWithFormat:@"%@", [date toLocalTime]];
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"h:mm a"];
-    formatDate = [dateFormatter stringFromDate:date];
-    
-    return formatDate;
-}
-
-
+// date picker selecting function
 - (void)dateIsChanged:(UIDatePicker *)datePicker{
     NSLog(@"Selected date = %@", datePicker.date);
     if (datePicker == self.dtPickerStart) {
@@ -265,7 +476,253 @@
     }
 }
 
-// alert view
+// Attendees clicking event
+- (IBAction)onAttendeeClicked:(id)sender {
+    
+    [self hideKeyboard];
+    
+    SelAttendeesViewController *controller = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"selAttendeesVC"];
+    
+    controller.arrAttendees = attendeeArray;
+    controller.arrSelectedAttendees = attendeeSeletedArray;
+    controller.delegate = self;
+    
+    [self.navigationController pushViewController:controller animated:YES];
+}
+
+
+// Labour type clicking event
+- (IBAction)onTypeClicked:(id)sender {
+    [self hideKeyboard];
+    
+    SelLabourTypesViewController *controller = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"selLabourTypesVC"];
+    controller.arrTypes = typeArray;
+    controller.selectedTypes = labourTypeId;
+    controller.delegate = self;
+    
+    [self.navigationController pushViewController:controller animated:YES];
+}
+
+
+//*****************************
+// Local functions
+//*****************************
+
+// init local variables
+- (void)initLocalVariable
+{
+    appContext = [AppContext sharedInstance];
+    userContext = [UserContext sharedInstance];
+    userContext.addEventWindowDelegate = self;
+    
+    fInit_constraitTopOfAttendee = self.constraitTopOfAttendee.constant;
+    fInit_constraitTopOfNote = self.constraitTopOfNote.constant;
+    
+    bIsCollapsedStartDate = YES;
+    bIsCollapsedEndDate = YES;
+    bIsCollapsedType = YES;
+    bIsCollapsedAttendees = YES;
+    
+    bIsShowedAttendeeList = NO;
+
+    [self registerForKeyboardNotifications];
+
+    // get user list and labour type list
+    SHOW_PROGRESS(@"Fetching data...");
+    [[ServerManager sharedManager] getUserList:^(NSMutableArray *arrUserList) {
+        
+        // load attendees
+        {
+            attendeeArray = arrUserList;
+            attendeeSeletedArray = [[NSMutableArray alloc] init];
+
+            // load all attendees
+            
+            // remove current user
+            int currUserId = [appContext loadUserID];
+            for (UserInfo *oneUser in attendeeArray)
+            {
+                if (oneUser.userID == currUserId)
+                {
+                    [attendeeArray removeObject:oneUser];
+                    break;
+                }
+            }
+            
+            for (UserInfo *key in attendeeArray) {
+                BOOL isSelected = NO;
+                
+                for (UserInfo *keyed in attendeeSeletedArray) {
+                    if (key.userID == keyed.userID) {
+                        isSelected = YES;
+                    }
+                }
+                
+                [attendeeSelectionStates setObject:[NSNumber numberWithBool:isSelected] forKey:[NSString stringWithFormat:@"%d", key.userID]];
+            }
+        }
+        
+        
+        // download labour type list from server
+        [[ServerManager sharedManager] getLabourType:^(NSMutableArray *arrLabourList) {
+//            HIDE_PROGRESS;
+
+            [userContext initLabourTypeArray:arrLabourList];
+            
+            /*
+            // load type list
+            {
+                if (arrLabourList != nil) {
+                    typeArray = arrLabourList;
+                    
+                    if (typeArray.count > 0) {
+                        LabourType *item = (LabourType *)[typeArray objectAtIndex:labourTypeId];
+                        labourTypeId = item.typeID;
+                        [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
+                    }
+                }
+            }
+             */
+            
+            typeArray = arrLabourList;
+            
+            LabourType *item = (LabourType *)[typeArray objectAtIndex:[self getLabourTypeIndex:labourTypeId]];
+            labourTypeId = item.typeID;
+            [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
+            
+            // download jobs and display selected job
+            [self downloadJobs];
+
+        } failure:^(NSString *failure) {
+            HIDE_PROGRESS_WITH_FAILURE(failure);
+            
+        }];
+    } failure:^(NSString *failure) {
+        HIDE_PROGRESS_WITH_FAILURE(failure);
+        
+    }];
+}
+
+// get date string format
+- (NSString *)getDateWithFormat:(NSDate *)date {
+    NSString *formatDate = [NSString stringWithFormat:@"%@", date];
+    formatDate = [NSString stringWithFormat:@"%@", [date toLocalTime]];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"dd MMM yyyy"];
+    formatDate = [dateFormatter stringFromDate:date];
+    
+    return formatDate;
+}
+
+// get time string format
+- (NSString *)getTimeWithFormat:(NSDate *)date {
+    NSString *formatDate = [NSString stringWithFormat:@"%@", date];
+    formatDate = [NSString stringWithFormat:@"%@", [date toLocalTime]];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"h:mm a"];
+    formatDate = [dateFormatter stringFromDate:date];
+    
+    return formatDate;
+}
+
+
+
+// get labour type index from typeId
+- (NSUInteger)getLabourTypeIndex:(int)typeId {
+    
+    NSUInteger index = 0;
+    
+    if (typeArray != nil) {
+        for (index = 0; index < typeArray.count; index++) {
+            
+            LabourType *oneType = [typeArray objectAtIndex:index];
+            
+            if (oneType.typeID == typeId)
+                return index;
+        }
+    }
+    
+    return index;
+}
+
+// display Job
+- (void)displayJobs:(int)selJobId postUnit:(NSString *)postUnit jobNotes:(NSString *)jobNotes {
+    jobId = selJobId;
+    jobPostUnit = [NSString stringWithString:postUnit];
+    jobPostNotes = [NSString stringWithString:jobNotes];
+    
+    if (jobId == kJobId_UNASSIGNED) {
+        self.lblJob.hidden = NO;
+        self.lblJobTitle.text = @"";
+        self.lblJobDescription.text = @"";
+        
+    } else {
+        self.lblJob.hidden = YES;
+        self.lblJobTitle.text = [NSString stringWithFormat:@"%d - %@", jobId, jobPostUnit];
+        self.lblJobDescription.text = [NSString stringWithFormat:@"%@", jobPostNotes];
+    }
+}
+
+- (void)displayJob:(int)selJobId {
+    jobId = selJobId;
+    
+    Job *oneJob = [[UserContext sharedInstance] getJob:jobId];
+    
+    if (oneJob == nil) {
+        jobPostUnit = @"";
+        jobPostNotes = @"";
+        
+        self.lblJob.hidden = NO;
+        self.lblJobTitle.text = @"";
+        self.lblJobDescription.text = @"";
+    }
+    else {
+        jobPostUnit = [NSString stringWithString:oneJob.companyName];
+        jobPostNotes = [NSString stringWithString:oneJob.notes];
+        
+        self.lblJob.hidden = YES;
+        self.lblJobTitle.text = [NSString stringWithFormat:@"%d - %@", jobId, jobPostUnit];
+        self.lblJobDescription.text = [NSString stringWithFormat:@"%@", jobPostNotes];
+    }
+    
+}
+
+- (void)downloadJobs {
+    
+    double lat = [appContext loadUserLocationLat];
+    double lon = [appContext loadUserLocationLng];
+    
+    if (isTestMode) {
+        lat = -33.831370;
+        lon = 151.200818;
+    }
+    
+    [ [ServerManager sharedManager] getJobsByLocation:lat lon:lon success:^(NSMutableArray *arrJobList)
+     {
+         HIDE_PROGRESS;
+         [[UserContext sharedInstance] initJobs:arrJobList];
+         
+         // display Job
+         [self displayJob:jobId];
+         
+     } failure:^(NSString *failure)
+     {
+         HIDE_PROGRESS_WITH_FAILURE(failure);
+         
+         // display Job
+         [self displayJob:jobId];
+     } ];
+}
+
+- (void)dismiss {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+
+//*****************************************************
+//     alert view
+//*****************************************************
+
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     
     if (buttonIndex == 1)
@@ -279,109 +736,9 @@
     }
 }
 
-
-- (IBAction)onCancelClicked:(id)sender {
-    [self dismiss];
-}
-
-- (IBAction)onAddClicked:(id)sender {
-    static NSUInteger insertCounter = 0;
-    
-    if (selectedJobId == kJobId_UNASSIGNED) {
-        NSString *title = @"Job assign";
-        NSString *message = @"Please select the job";
-        
-        UIAlertView *alertView = [ [UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"YES", nil ];
-        
-        [alertView show];
-        
-        return;
-    }
-
-    
-    SHOW_PROGRESS(@"Fetching data...");
-    
-    insertCounter = 0;
-    
-    
-    int currUserId = [[AppContext sharedInstance] loadUserID];
-    
-    if (isAllDay) {
-        NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-        dateFormat.dateFormat = @"yyyy-MM-dd HH:mm:ss";
-        
-        NSString *startDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
-                                   (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_BeginHour, kDayWorkTime_BeginMin];
-        NSString *endDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
-                                   (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_EndHour, kDayWorkTime_EndMin];
-        
-        startTime = [dateFormat dateFromString:startDateTime];
-        endTime = [dateFormat dateFromString:endDateTime];
-    }   
-    
-    
-    NSString *sheetDescription = self.txtNote.text;
-    
-    [[ServerManager sharedManager] insertTimesheet:currUserId
-                                         startTime:startTime
-                                           endTime:endTime
-                                             jobID:selectedJobId
-                                       companyName:selectedJobPostUnit
-                                      labourTypeId:selectedLabourTypes
-                                             notes:sheetDescription
-                                           success:^(BOOL result)
-     {
-         
-         // add other attendees
-         
-         if (attendeeSeletedArray.count > 0)
-         {
-             
-             for (NSUInteger i = 0; i < attendeeSeletedArray.count; i++)
-             {
-                 NSString *currObj = [attendeeSeletedArray objectAtIndex:i];
-                 
-                 [[ServerManager sharedManager] insertTimesheet:(int)[currObj integerValue]
-                                                      startTime:startTime
-                                                        endTime:endTime
-                                                          jobID:selectedJobId
-                                                    companyName:selectedJobPostUnit
-                                                   labourTypeId:selectedLabourTypes
-                                                          notes:sheetDescription
-                                                        success:^(BOOL result)
-                  {
-                      
-                      // add other attendees
-                      insertCounter = insertCounter + 1;
-                      if (insertCounter >= attendeeSeletedArray.count) {
-                          
-                          HIDE_PROGRESS;
-                          
-                          [self dismiss];
-                          
-                      }
-                      
-                  } failure:^(NSString *failure)
-                  {
-                      HIDE_PROGRESS_WITH_FAILURE(failure);
-                  } ];
-             }
-             
-         }
-         else
-         {
-             HIDE_PROGRESS;
-             [self dismiss];
-         }
-     } failure:^(NSString *failure)
-     {
-         HIDE_PROGRESS;
-     } ];
-}
-
-- (void)dismiss {
-    [self.navigationController popViewControllerAnimated:YES];
-}
+//*****************************************************
+//     UITextField delegate
+//*****************************************************
 
 - (void)textViewDidBeginEditing:(UITextView *)textView
 {
@@ -408,71 +765,7 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
     [textField resignFirstResponder];
-    
     return YES;
-}
-
-
-- (IBAction)onStartDateClicked:(id)sender {
-    [self hideKeyboard];
-    
-    [UIView animateWithDuration:kAnimationDuration animations:^{
-        if (isCollapsedStartDate) {
-            self.dtPickerStart.hidden = NO;
-            self.constraitTopOfEndDate.constant = kDatePickerHeight;
-            self.lblStartTime.textColor = [UIColor redColor];
-            
-            isCollapsedStartDate = NO;
-            
-            if (isCollapsedEndDate == NO) {
-                self.dtPickerEnd.hidden = YES;
-                self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
-                self.lblEndTime.textColor = [UIColor blackColor];
-                
-                isCollapsedEndDate = YES;
-            }
-        }
-        else
-        {
-            self.dtPickerStart.hidden = YES;
-            self.constraitTopOfEndDate.constant = 0.0f;
-            self.lblStartTime.textColor = [UIColor blackColor];
-            
-            isCollapsedStartDate = YES;
-        }
-    } completion:^(BOOL finished) {
-    }];
-}
-
-- (IBAction)onEndDateClicked:(id)sender {
-    [self hideKeyboard];
-    
-    [UIView animateWithDuration:kAnimationDuration animations:^{
-        if (isCollapsedEndDate) {
-            self.dtPickerEnd.hidden = NO;
-            self.constraitTopOfAttendee.constant = kDatePickerHeight;
-            self.lblEndTime.textColor = [UIColor redColor];
-            
-            isCollapsedEndDate = NO;
-            
-            if (isCollapsedStartDate == NO) {
-                self.dtPickerStart.hidden = YES;
-                self.constraitTopOfEndDate.constant = 0.0f;
-                self.lblStartTime.textColor = [UIColor blackColor];
-                
-                isCollapsedStartDate = YES;
-            }
-        }
-        else
-        {
-            self.dtPickerEnd.hidden = YES;
-            self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
-            self.lblEndTime.textColor = [UIColor blackColor];
-            
-            isCollapsedEndDate = YES;
-        }
-    } completion:^(BOOL finished) {
-    }];
 }
 
 - (void)registerForKeyboardNotifications
@@ -514,115 +807,41 @@
 
 //the Function that call when keyboard hide.
 - (void)keyboardWillBeHidden:(NSNotification *)notif {
-    [self restoreScrollView];
-}
 
-- (void)restoreScrollView {
+    // restore scrollview
     UIEdgeInsets contentInsets = UIEdgeInsetsZero;
     self.scrollViewContents.contentInset = contentInsets;
     self.scrollViewContents.scrollIndicatorInsets = contentInsets;
 }
 
 
-- (IBAction)onBkButtonClicked:(id)sender {
-    [self hideKeyboard];
-}
-
-- (IBAction)onTypeClicked:(id)sender {
-    [self hideKeyboard];
-
-    SelLabourTypesViewController *controller = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"selLabourTypesVC"];
-    controller.arrTypes = typeArray;
-    controller.selectedTypes = selectedLabourTypes;
-    controller.delegate = self;
-    
-    [self.navigationController pushViewController:controller animated:YES];
-}
+//*****************************************************
+//     SelLabourTypesViewControllerDelegate functions
+//*****************************************************
 
 - (void)didLabourTypeTap:(int)selTypeId {
     for (LabourType *item in typeArray) {
         if (item.typeID == selTypeId) {
-            selectedLabourTypes = selTypeId;
+            labourTypeId = selTypeId;
             [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
         }
     }
 }
 
+//*****************************************************
+//     SelAttendeesViewControllerDelegate
+//*****************************************************
 - (void)returnChoosedUserId:(NSMutableArray *)selectedAttendees {
+    
+    // display selected attendees
+    
     attendeeSeletedArray = [[NSMutableArray alloc] initWithArray:selectedAttendees];
-    
-    [self displaySelectedAttendees];
-    
-}
-
-- (IBAction)onAttendeeClicked:(id)sender {
-    
-    [self hideKeyboard];
-    
-    SelAttendeesViewController *controller = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"selAttendeesVC"];
-    
-    
-    controller.arrAttendees = attendeeArray;
-    controller.arrSelectedAttendees = attendeeSeletedArray;
-    controller.delegate = self;
-    
-    [self.navigationController pushViewController:controller animated:YES];
-    
-}
-
-- (void)loadTypeList:(NSMutableArray *)arrTypes {
-    if (arrTypes != nil) {
-        typeArray = arrTypes;
-        
-        if (typeArray.count > 0) {
-            LabourType *item = (LabourType *)[typeArray objectAtIndex:0];
-            selectedLabourTypes = item.typeID;
-            [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
-        }
-    }
-}
-
-- (void)loadAttendess:(NSMutableArray *)arrUsers {
-    attendeeArray = [[NSMutableArray alloc] init];
-    attendeeSeletedArray = [[NSMutableArray alloc] init];
-    // load all attendees
-    if (arrUsers != nil) {
-        attendeeArray = arrUsers;
-    }
-    
-    // remove current user
-    int currUserId = [[AppContext sharedInstance] loadUserID];
-    for (UserInfo *oneUser in attendeeArray)
-    {
-        if (oneUser.userID == currUserId)
-        {
-            [attendeeArray removeObject:oneUser];
-            break;
-        }
-    }
-    
-    for (UserInfo *key in attendeeArray) {
-        BOOL isSelected = NO;
-        
-        for (UserInfo *keyed in attendeeSeletedArray) {
-            if (key.userID == keyed.userID) {
-                isSelected = YES;
-            }
-        }
-        
-        [attendeeSelectionStates setObject:[NSNumber numberWithBool:isSelected] forKey:[NSString stringWithFormat:@"%d", key.userID]];
-    }
-}
-
-
-- (void)displaySelectedAttendees
-{
     NSString *strTitle = @"None";
     
     if (attendeeSeletedArray.count > 0) {
         strTitle = [NSString stringWithFormat:@"%d Users", (int)attendeeSeletedArray.count];
     }
-        
+    
     [self.btnAttendees setTitle:strTitle forState:UIControlStateNormal];
     
     for (NSString *oneUser in attendeeSeletedArray)
@@ -631,104 +850,23 @@
     }
 }
 
-- (NSUInteger)getLabourTypeIndex:(int)labourTypeId {
-    
-    NSUInteger index = 0;
-    
-    if (typeArray != nil) {
-        for (index = 0; index < typeArray.count; index++) {
-            
-            LabourType *oneType = [typeArray objectAtIndex:index];
-            
-            if (oneType.typeID == labourTypeId)
-                return index;
-        }
-    }
-
-    return index;
-}
-
-- (IBAction)onChangedAllDay:(id)sender
-{
-    [self hideKeyboard];
-    
-    isAllDay = [sender isOn];
-    
-    if (isAllDay == YES) {
-        
-        // hide date selection
-        
-        [UIView animateWithDuration:kAnimationDuration animations:^{
-            
-            if (isCollapsedStartDate == NO) {
-                self.dtPickerStart.hidden = YES;
-                self.constraitTopOfEndDate.constant = 0.0f;
-                self.lblStartTime.textColor = [UIColor blackColor];
-                
-                isCollapsedStartDate = YES;
-            }
-            
-            if (isCollapsedEndDate == NO) {
-                self.dtPickerEnd.hidden = YES;
-                self.constraitTopOfAttendee.constant = fInit_constraitTopOfAttendee;
-                self.lblEndTime.textColor = [UIColor blackColor];
-                
-                isCollapsedEndDate = YES;
-            }
-        } completion:^(BOOL finished) {
-        }];
-    }
-    
-    BOOL isTimeEnable = YES;
-    isTimeEnable = (isAllDay == YES)? NO: YES;
-    
-    self.btnStart.enabled = isTimeEnable;
-    self.btnEnd.enabled = isTimeEnable;
-    
-    // change color of start/end time label
-    if (isAllDay) {
-        self.lblStartTime.textColor = kButtonDisableTitleColor;
-        self.lblEndTime.textColor = kButtonDisableTitleColor;
-    }
-    else {
-        self.lblStartTime.textColor = [UIColor blackColor];
-        self.lblEndTime.textColor = [UIColor blackColor];
-    }
-}
-
-- (IBAction)onJobClicked:(id)sender {
-    
-    JobSelectionViewController *controller = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"selJobVC"];
-    controller.delegate = self;
-    
-    controller.isTestMode = YES;
-    
-    [self.navigationController pushViewController:controller animated:YES];
-}
+//*****************************************************
+//     JobSelectionViewControllerDelegate
+//*****************************************************
 
 #pragma mark - JobSelectionViewControllerDelegate
 - (void)didJobSelected:(int)selJobId postUnit:(NSString *)postUnit notes:(NSString *)notes {
     
-    selectedJobId = selJobId;
-    selectedJobPostUnit = [NSString stringWithFormat:@"%@", postUnit];
-    selectedJobNote = [NSString stringWithFormat:@"%@", notes];
-    
-    self.lblJob.hidden = YES;
-    
-    self.lblJobTitle.text = [NSString stringWithFormat:@"%d - %@", selectedJobId, selectedJobPostUnit];
-    self.lblJobDescription.text = [NSString stringWithFormat:@"%@", selectedJobNote];
-    
-    [self.btnJob setTitle:@"" forState:UIControlStateNormal];
+    [self displayJobs:selJobId postUnit:postUnit jobNotes:notes];
 }
 
-//============================
+//*****************************************************
 //      NewEventWindow Delegate
-//============================
-- (void)updateNewEventWindow:(NSDate *)eventStartTime endTime:(NSDate*)eventEndTime initLabourTypeId:(int)labourTypeId
+//*****************************************************
+- (void)updateNewEventWindow:(NSDate *)eventStartTime endTime:(NSDate*)eventEndTime initLabourTypeId:(int)typeId
 {
     startTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:eventStartTime];
     endTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:eventEndTime];
-    initLabourTypeId = labourTypeId;
     
     isAllDay = NO;
     
@@ -737,9 +875,8 @@
     self.btnStart.enabled = YES;
     self.btnEnd.enabled = YES;
     
-    selectedLabourTypes = initLabourTypeId;
-    LabourType *item = (LabourType *)[typeArray objectAtIndex:[self getLabourTypeIndex:initLabourTypeId]];
-    selectedLabourTypes = item.typeID;
+    LabourType *item = (LabourType *)[typeArray objectAtIndex:[self getLabourTypeIndex:typeId]];
+    labourTypeId = item.typeID;
     [self.btnType setTitle:item.typeName forState:UIControlStateNormal];
     
     [self.dtPickerStart setDate:startTime];
@@ -750,4 +887,64 @@
     self.lblEndTime.text = [self getTimeWithFormat:endTime];
 }
 
+//*****************************************************
+//      Pubilc functions
+//*****************************************************
+- (void)updateEventWindow:(BOOL)isNewEvent
+                 selJobId:(int)selJobId
+                 labourId:(int)labourId
+           eventStartTime:(NSDate*)eventStartTime
+             eventEndTime:(NSDate*)eventEndTime
+         initLabourTypeId:(int)initLabourTypeId
+                eventNote:(NSString *)eventNote
+{
+    isNewEventMode = isNewEvent;
+    
+    jobId = selJobId;
+    
+    /*
+    Job *selJob = [[UserContext sharedInstance] getJob:jobId];
+    
+    if (selJob) {
+        jobPostUnit = selJob.companyName;
+        jobPostNotes = selJob.notes;
+        
+    } else {
+        jobPostUnit = @"";
+        jobPostNotes = @"";
+    }
+     */
+    
+    
+    isAllDay = NO;
+    
+    startTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:eventStartTime];
+    endTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:eventEndTime];
+    
+    labourTypeId = initLabourTypeId;
+    note = [NSString stringWithString:eventNote];
+}
+
+- (void)createNewEvent:(NSDate*)eventStartTime eventEndTime:(NSDate*)eventEndTime
+{
+    [self updateEventWindow:YES
+                   selJobId:kJobId_UNASSIGNED
+                   labourId:kLabourId_UNASSIGNED
+             eventStartTime:eventStartTime
+               eventEndTime:eventEndTime
+           initLabourTypeId:kLabourTypeId_Labour
+                  eventNote:@""];
+}
+
+- (void)editSelectEvent:(TimeSheet *)sheet
+{
+    [self updateEventWindow:NO
+                   selJobId:sheet.jobID
+                   labourId:sheet.labourID
+             eventStartTime:sheet.startTime
+               eventEndTime:sheet.endTime
+           initLabourTypeId:sheet.labourTypeID
+                  eventNote:sheet.labourDescription];
+    
+}
 @end

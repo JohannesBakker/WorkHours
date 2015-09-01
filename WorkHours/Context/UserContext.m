@@ -26,6 +26,7 @@
 @synthesize arrLabourType;
 @synthesize arrUserPins;
 @synthesize dictTimesheets;
+@synthesize arrJobs;
 
 
 + (instancetype)sharedInstance {
@@ -47,6 +48,7 @@
     dictTimesheets = [[NSMutableDictionary alloc] init];
     arrLabourType = [NSMutableArray array];
     arrUserPins = [NSMutableArray array];
+    arrJobs = [NSMutableArray array];
     
     // init sort descriptor for timesheets
     timesheetSortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"startTime"
@@ -82,18 +84,55 @@
         NSArray *sortedArray = [arrPins sortedArrayUsingDescriptors:userPinSortDescriptors];
         [arrUserPins addObjectsFromArray:sortedArray];
     }
-    
-    /*
-    if (arrPins == nil) {
-        //arrUserPins = [NSMutableArray array];
-    }
-    else {
-        //arrUserPins = [[NSMutableArray alloc] initWithArray:arrPins];
-        
-    }
-     */
 }
 
+- (void)initJobs:(NSMutableArray *)arrJobList
+{
+    if (arrJobs) {
+        [arrJobs removeAllObjects];
+    } else {
+        arrJobs = [NSMutableArray array];
+    }
+    
+    if (arrJobList) {
+        [arrJobs addObjectsFromArray:arrJobList];
+    }
+        
+}
+
+//********************************
+//  functions of Jobs
+//********************************
+- (Job *)getJob:(int)jobId
+{
+    if (arrJobs != nil && arrJobs.count > 0) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"jobID == %d", jobId];
+        NSArray *filteredArray = [arrJobs filteredArrayUsingPredicate:predicate];
+        
+        if (filteredArray != nil && filteredArray.count > 0) {
+            Job *selJob = [filteredArray objectAtIndex:0];
+            
+            return selJob;
+        }
+    }
+    return nil;
+}
+
+
+//********************************
+//  functions of Timesheets dictionary
+//********************************
+- (NSString *)keyOfTimesheets:(NSDate *)date
+{
+    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    dateFormat.dateFormat = @"yyyy-MM-dd";
+    
+    NSString *szKey = [dateFormat stringFromDate:date];
+    
+    return szKey;
+}
+
+// get coverd timesheet with pin creating time
 - (TimeSheet *)getCoveredTimesheet:(NSDate *)pinCreateTime
 {
     NSArray *arrTimeSheets = [self getTimesheets:pinCreateTime];
@@ -110,19 +149,6 @@
     }
     
     return nil;
-}
-
-//********************************
-//  functions of Timesheets dictionary
-//********************************
-- (NSString *)keyOfTimesheets:(NSDate *)date
-{
-    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-    dateFormat.dateFormat = @"yyyy-MM-dd";
-    
-    NSString *szKey = [dateFormat stringFromDate:date];
-    
-    return szKey;
 }
 
 // add timesheets for all timesheets

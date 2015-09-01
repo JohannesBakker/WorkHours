@@ -11,7 +11,7 @@
 
 @implementation TimeSheet
 
-@synthesize labourID, startTime, endTime, jobID, companyName, labourTypeID, jobDescription;
+@synthesize labourID, startTime, endTime, jobID, companyName, labourTypeID, labourDescription;
 
 
 - (void)initWithParam:(int)labourId starttime:(NSString*)starttime endtime:(NSString*)endtime jobId:(int)jobId company:(NSString*)company labourTypeId:(int)labourTypeId jobNotes:(NSString*)jobNotes {
@@ -27,7 +27,7 @@
     jobID = jobId;
     companyName = [NSString stringWithFormat:@"%@", company];
     labourTypeID = labourTypeId;
-    jobDescription = [NSString stringWithFormat:@"%@", jobNotes];
+    labourDescription = [NSString stringWithFormat:@"%@", jobNotes];
 }
 
 
@@ -42,7 +42,7 @@
     jobID = jobId;
     companyName = [NSString stringWithFormat:@"%@", company];
     labourTypeID = labourTypeId;
-    jobDescription = [NSString stringWithFormat:@"%@", jobNotes];
+    labourDescription = [NSString stringWithFormat:@"%@", jobNotes];
 }
 
 @end

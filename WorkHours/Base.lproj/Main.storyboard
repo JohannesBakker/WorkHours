@@ -550,32 +550,12 @@
                                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
-                                            <button opaque="NO" contentMode="scaleAspectFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="h7W-U5-itp">
-                                                <rect key="frame" x="0.0" y="14" width="100" height="36"/>
-                                                <constraints>
-                                                    <constraint firstAttribute="height" constant="36" id="gFe-VI-3zJ"/>
-                                                    <constraint firstAttribute="width" constant="100" id="ggU-jT-ryP"/>
-                                                </constraints>
-                                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                <state key="normal" title="Back" image="menu_back-blue">
-                                                    <color key="titleColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                </state>
-                                                <state key="highlighted" image="menu_back-SEL">
-                                                    <color key="titleColor" red="0.50866371580000003" green="0.58882016319999997" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                </state>
-                                                <connections>
-                                                    <action selector="onBackClicked:" destination="qUP-J5-OIM" eventType="touchUpInside" id="ShS-pu-mLY"/>
-                                                    <action selector="onMapBackClicked:" destination="ZbS-wG-kyX" eventType="touchUpInside" id="zIT-Cj-aP2"/>
-                                                </connections>
-                                            </button>
                                         </subviews>
                                         <color key="backgroundColor" red="0.93725490196078431" green="0.93725490196078431" blue="0.95686274509803915" alpha="1" colorSpace="calibratedRGB"/>
                                         <constraints>
-                                            <constraint firstItem="h7W-U5-itp" firstAttribute="leading" secondItem="RYh-oN-71b" secondAttribute="leading" id="3Ro-mn-dnn"/>
                                             <constraint firstAttribute="centerX" secondItem="xle-wG-Cu4" secondAttribute="centerX" id="hnF-ua-CD0"/>
                                             <constraint firstAttribute="height" constant="64" id="jCo-qN-Qp8"/>
                                             <constraint firstAttribute="centerY" secondItem="xle-wG-Cu4" secondAttribute="centerY" id="jox-08-HLc"/>
-                                            <constraint firstAttribute="centerY" secondItem="h7W-U5-itp" secondAttribute="centerY" id="l30-90-MyO"/>
                                         </constraints>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6r0-qD-0AR" userLabel="viewMap">
@@ -1466,7 +1446,7 @@
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="onAddClicked:" destination="qUe-5U-fqd" eventType="touchUpInside" id="AgK-XT-cAV"/>
+                                            <action selector="onAddDoneClicked:" destination="qUe-5U-fqd" eventType="touchUpInside" id="T6h-I8-hUK"/>
                                         </connections>
                                     </button>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="New Event" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kaT-PR-1qF">
@@ -1519,6 +1499,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="btnAddDone" destination="WeU-aS-T4Q" id="d6j-mb-FFe"/>
                         <outlet property="btnAttendees" destination="u3e-2H-84z" id="PDB-S7-Zz2"/>
                         <outlet property="btnEnd" destination="wNM-pM-Pnl" id="HM2-tB-wyr"/>
                         <outlet property="btnJob" destination="nj9-Sr-wUJ" id="ZJd-7D-YBc"/>
@@ -1535,6 +1516,7 @@
                         <outlet property="lblJobDescription" destination="7q2-Lp-nbz" id="qbK-cb-T3p"/>
                         <outlet property="lblJobTitle" destination="gQk-mk-33f" id="shh-KT-sfQ"/>
                         <outlet property="lblStartTime" destination="tV5-8S-rHx" id="pwl-Oy-XLr"/>
+                        <outlet property="lblTitle" destination="kaT-PR-1qF" id="SnB-gt-hPf"/>
                         <outlet property="scrollViewContents" destination="DGZ-hu-ygn" id="Bjn-0F-MdF"/>
                         <outlet property="switchAllDay" destination="gYH-SD-JEX" id="2ce-6D-rO5"/>
                         <outlet property="txtNote" destination="4w5-AK-l00" id="nUG-IA-brv"/>
@@ -1726,7 +1708,6 @@
         <image name="icon_user" width="15" height="17"/>
         <image name="menu_back" width="24" height="24"/>
         <image name="menu_back-SEL" width="24" height="24"/>
-        <image name="menu_back-blue" width="24" height="24"/>
         <image name="right" width="20" height="20"/>
     </resources>
 </document>

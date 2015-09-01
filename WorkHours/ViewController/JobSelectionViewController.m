@@ -40,7 +40,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    arrJobs = [NSMutableArray array];
+    // arrJobs = [NSMutableArray array];
+    arrJobs = [UserContext sharedInstance].arrJobs;
+    
     isDisplayByNumber = YES;
     
     // set Buttone view's border
@@ -94,11 +96,13 @@
     }
     
     
-    
     [ [ServerManager sharedManager] getJobsByLocation:lat lon:lon success:^(NSMutableArray *arrJobList)
      {
          HIDE_PROGRESS;
-         arrJobs = [[NSMutableArray alloc] initWithArray:arrJobList];
+         //arrJobs = [[NSMutableArray alloc] initWithArray:arrJobList];
+         
+         [[UserContext sharedInstance] initJobs:arrJobList];
+         arrJobs = [UserContext sharedInstance].arrJobs;
          
          [self resortJobs];
          [self.viewJobs reloadData];

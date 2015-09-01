@@ -488,9 +488,9 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
                         
                         valForObject = [dictionary objectForKey:@"description"] ;
                         if (valForObject == [NSNull null])
-                            oneSheet.jobDescription = @"";
+                            oneSheet.labourDescription = @"";
                         else
-                            oneSheet.jobDescription = (NSString *)valForObject;
+                            oneSheet.labourDescription = (NSString *)valForObject;
 
                         [arrResult addObject:oneSheet];
                     } // end for
@@ -580,9 +580,9 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
                         
                         valForObject = [dictionary objectForKey:@"description"] ;
                         if (valForObject == [NSNull null])
-                            oneSheet.jobDescription = @"";
+                            oneSheet.labourDescription = @"";
                         else
-                            oneSheet.jobDescription = (NSString *)valForObject;
+                            oneSheet.labourDescription = (NSString *)valForObject;
                         
                         [arrResult addObject:oneSheet];
                     } // end for
