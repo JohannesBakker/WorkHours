@@ -367,7 +367,7 @@
             if (vc.view) {
                 [vc.view removeFromSuperview];
                 vc.view = nil;
-                [vc viewDidUnload];
+//                [vc viewDidUnload];
             }
         }
     }
