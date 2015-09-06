@@ -11,7 +11,7 @@
 #import "Job.h"
 #import "LabourType.h"
 
-#define kTestMode           YES //YES //NO
+#define kTestMode           NO //YES //NO
 
 // User location refresh timer interval :  30 mins
 #if (kTestMode == YES)

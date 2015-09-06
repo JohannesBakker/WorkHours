@@ -26,6 +26,9 @@
 - (void)saveUserName:(NSString *)userName;
 - (NSString *)loadUserName;
 
+- (void)saveUserPassword:(NSString *)userPassword;
+- (NSString *)loadUserPassword;
+
 - (void)saveUserLocationLat:(double)latitude;
 - (double)loadUserLocationLat;
 

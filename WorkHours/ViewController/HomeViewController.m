@@ -728,7 +728,7 @@
     vc.isTestMode = isTestMode;
     
     
-    [vc createNewEvent:startTime eventEndTime:endTime];
+    [vc createNewEvent:startTime eventEndTime:endTime labourTypeID:initLabourTypeId];
     [self.navigationController pushViewController:vc animated:YES];
 }
 

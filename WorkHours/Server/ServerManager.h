@@ -25,6 +25,7 @@
 #define kMethodForGetUserPins                   @"getuserpins"
 #define kMethodForInsertUserPin                  @"insertuserpin"
 #define kMethodForInsertTimesheet              @"inserttimesheet"
+#define kMethodForChangeTimesheet              @"changetimesheet"
 
 
 #define DEF_SERVERMANAGER   ServerManager *manager = [ServerManager sharedManager];
@@ -49,6 +50,7 @@ typedef void (^ServerManagerRequestHandlerBlock)(NSString *, NSDictionary *, NSE
 - (void)getUserPins:(int)userId date:(NSDate*)date success:(void (^)(NSMutableArray *))sucess failure:(void (^)(NSString *))failure;
 - (void)insertUserPin:(int)userId lat:(double)lat lon:(double)lon creationDateTime:(NSDate*)creationDateTime success:(void (^)(BOOL))sucess failure:(void (^)(NSString *))failure;
 - (void)insertTimesheet:(int)userId startTime:(NSDate*)startTime endTime:(NSDate*)endTime jobID:(int)jobID companyName:(NSString *)companyName labourTypeId:(int)labourTypeId notes:(NSString *)notes success:(void (^)(BOOL))sucess failure:(void (^)(NSString *))failure;
+- (void)changetimesheet:(int)labourID updateStartTime:(NSDate*)updateStartTime updateEndTime:(NSDate*)updateEndTime jobID:(int)jobID labourTypeId:(int)labourTypeId notes:(NSString*)notes success:(void (^)(BOOL))sucess failure:(void (^)(NSString *))failure;
 
 
 

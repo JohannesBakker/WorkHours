@@ -74,6 +74,19 @@
     return savedUserName;
 }
 
+- (void)saveUserPassword:(NSString *)userPassword {
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject: userPassword forKey:@"userPassword"];
+    [defaults synchronize];
+}
+
+- (NSString *)loadUserPassword {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *savedUserPassword = [defaults stringForKey:@"userPassword"];
+    
+    return savedUserPassword;
+}
+
 
 - (void)saveUserLocationLat:(double)latitude {
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];

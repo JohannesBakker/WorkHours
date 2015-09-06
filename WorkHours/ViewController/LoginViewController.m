@@ -71,6 +71,22 @@
     [uiManager applyTextFieldInsetLeft:self.txtPassword inset:10];
     
     [uiManager applyDefaultButtonStyle:self.btnLogin];
+    
+    // load previous login user name/password
+    NSString *szUserName, *szPassword;
+    
+    szUserName = [appContext loadUserName];
+    szPassword = [appContext loadUserPassword];
+    
+    if (szUserName == nil)
+        szUserName = @"";
+    
+    if (szPassword == nil)
+        szPassword = @"";
+    
+    [self.txtUserId setText:szUserName];
+    [self.txtPassword setText:szPassword];
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -102,6 +118,7 @@
         [appContext saveUserFullName:fullname];
 
         [appContext saveUserName:szUserName];
+        [appContext saveUserPassword:szPassword];
         
         appContext.isLoginSuccess = YES;
 

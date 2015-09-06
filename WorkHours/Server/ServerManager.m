@@ -517,7 +517,6 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
     NSDateFormatter *timesheetFormatter = [[NSDateFormatter alloc] init];
     [timesheetFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
     
-    
     NSString *sessionId = [[AppContext sharedInstance] loadSession];
     NSDictionary *params = @{@"user_id": [NSString stringWithFormat:@"%d", userId],
                              @"begin_date": [dateFormatter stringFromDate:beginDate],
@@ -750,6 +749,45 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
     }];
     
 }
+
+- (void)changetimesheet:(int)labourID updateStartTime:(NSDate*)updateStartTime updateEndTime:(NSDate*)updateEndTime jobID:(int)jobID labourTypeId:(int)labourTypeId notes:(NSString*)notes success:(void (^)(BOOL))sucess failure:(void (^)(NSString *))failure
+{
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+    
+    NSString *sessionId = [[AppContext sharedInstance] loadSession];
+    NSDictionary *params = @{@"labour_id": [NSString stringWithFormat:@"%d", labourID],
+                             @"update_start_time": [dateFormatter stringFromDate:updateStartTime],
+                             @"update_end_time": [dateFormatter stringFromDate:updateEndTime],
+                             @"job_id": [NSString stringWithFormat:@"%d", jobID],
+                             @"labour_type_id": [NSString stringWithFormat:@"%d", labourTypeId],
+                             @"description": notes   };
+    
+    DEF_SERVERMANAGER
+    NSString *methodName = [NSString stringWithFormat:@"%@%@/%@", kAPIBaseUrlV2, sessionId, kMethodForChangeTimesheet];
+    
+    [manager postMethod:methodName params:params handler:^(NSString *responseStr, NSDictionary *response,  NSError *error) {
+        if (error != nil) {
+            failure([error localizedDescription]);
+            return;
+        }
+        
+        if (response == nil) {
+            if ([responseStr isEqualToString:@"Invalid Parameters\n"]) {
+                failure(@"Invalid Parameters!");
+            } else {
+                failure(@"Invalid response");
+            }
+            
+            return;
+            
+        } else {
+            sucess(YES);
+        }
+    }];
+    
+}
+
 
 
 @end

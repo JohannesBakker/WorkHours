@@ -37,6 +37,20 @@
 #define kAlertType_NoteEmpty    2
 
 @interface AddWorkViewController () <UITextFieldDelegate, UIScrollViewDelegate, SelLabourTypesViewControllerDelegate, JobSelectionViewControllerDelegate, SelAttendeesViewControllerDelegate, NewEventWindowDelegate> {
+    
+    BOOL              isAllDay;               // Enable/Disable All day
+    
+    int         labourId;           // Labour ID
+    NSDate*     startTime;          // labour Start time
+    NSDate*     endTime;            // labour End time
+    int         jobId;              // Job ID
+    NSString*   companyName;        // Job Company name
+    int         labourTypeId;       // Labour Type ID
+    NSString*   labourDescription;  // Labour description
+    
+    NSString*   jobDescription;       // Job description
+    
+    
     BOOL bIsCollapsedStartDate;
     BOOL bIsCollapsedEndDate;
     BOOL bIsCollapsedType;
@@ -113,13 +127,18 @@
 
 //@synthesize startTime, endTime, isTestMode;
 //@synthesize initLabourTypeId;
+@synthesize isTestMode;
 @synthesize isNewEventMode;
+//@synthesize sheet;
+
+
+/*
 @synthesize jobId, jobPostUnit, jobPostNotes;
 @synthesize isAllDay;
 @synthesize startTime, endTime;
 @synthesize labourTypeId;
 @synthesize note;
-@synthesize isTestMode;
+*/
 
 
 
@@ -168,6 +187,7 @@
     self.lblDate.text = [self getDateWithFormat:startTime];
     self.lblStartTime.text = [self getTimeWithFormat:startTime];
     self.lblEndTime.text = [self getTimeWithFormat:endTime];
+
     
     [self.dtPickerStart addTarget:self action:@selector(dateIsChanged:) forControlEvents:UIControlEventValueChanged];
     [self.dtPickerEnd addTarget:self action:@selector(dateIsChanged:) forControlEvents:UIControlEventValueChanged];
@@ -175,9 +195,16 @@
     self.btnStart.enabled = !isAllDay;
     self.btnEnd.enabled = !isAllDay;
     
+    // Attendees Enable/Disable
+    if (isNewEventMode) {
+        [self.btnAttendees setEnabled:YES];
+    } else {
+        [self.btnAttendees setEnabled:NO];
+    }
+    
     // Note
-    if (note.length > 0) {
-        self.txtNote.text = note;
+    if (labourDescription.length > 0) {
+        self.txtNote.text = labourDescription;
         bIsShowedHint = NO;
     } else {
         self.txtNote.text = @"Note";
@@ -220,9 +247,9 @@
 
 // Add/Done clicking event
 - (IBAction)onAddDoneClicked:(id)sender {
-    static NSUInteger insertCounter = 0;
     
     if (jobId == kJobId_UNASSIGNED) {
+        
         NSString *title = @"Job assign";
         NSString *message = @"Please select the job";
         
@@ -244,92 +271,42 @@
         return;
     }
     
-    // event add/change
+    int currUserId = [appContext loadUserID];
+    
+    if (isAllDay) {
+        NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+        dateFormat.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+        
+        NSString *startDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
+                                   (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_BeginHour, kDayWorkTime_BeginMin];
+        NSString *endDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
+                                 (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_EndHour, kDayWorkTime_EndMin];
+        
+        startTime = [dateFormat dateFromString:startDateTime];
+        endTime = [dateFormat dateFromString:endDateTime];
+    }
+    
+    
+    NSString *sheetDescription = self.txtNote.text;
+    
     if (isNewEventMode) {
         
-        // add new events
-        SHOW_PROGRESS(@"Fetching data...");
- 
-        insertCounter = 0;
-
-        int currUserId = [appContext loadUserID];
-        
-        if (isAllDay) {
-            NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-            dateFormat.dateFormat = @"yyyy-MM-dd HH:mm:ss";
-            
-            NSString *startDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
-                                       (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_BeginHour, kDayWorkTime_BeginMin];
-            NSString *endDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
-                                     (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_EndHour, kDayWorkTime_EndMin];
-            
-            startTime = [dateFormat dateFromString:startDateTime];
-            endTime = [dateFormat dateFromString:endDateTime];
-        }
-        
-        
-        NSString *sheetDescription = self.txtNote.text;
-        
-        [[ServerManager sharedManager] insertTimesheet:currUserId
-                                             startTime:startTime
-                                               endTime:endTime
-                                                 jobID:jobId
-                                           companyName:jobPostUnit
-                                          labourTypeId:labourTypeId
-                                                 notes:sheetDescription
-                                               success:^(BOOL result)
-         {
-             
-             // add other attendees
-             
-             if (attendeeSeletedArray.count > 0)
-             {
-                 
-                 for (NSUInteger i = 0; i < attendeeSeletedArray.count; i++)
-                 {
-                     NSString *currObj = [attendeeSeletedArray objectAtIndex:i];
-                     
-                     [[ServerManager sharedManager] insertTimesheet:(int)[currObj integerValue]
-                                                          startTime:startTime
-                                                            endTime:endTime
-                                                              jobID:jobId
-                                                        companyName:jobPostUnit
-                                                       labourTypeId:labourTypeId
-                                                              notes:sheetDescription
-                                                            success:^(BOOL result)
-                      {
-                          
-                          // add other attendees
-                          insertCounter = insertCounter + 1;
-                          if (insertCounter >= attendeeSeletedArray.count) {
-                              
-                              HIDE_PROGRESS;
-                              
-                              [self dismiss];
-                              
-                          }
-                          
-                      } failure:^(NSString *failure)
-                      {
-                          HIDE_PROGRESS_WITH_FAILURE(failure);
-                      } ];
-                 }
-                 
-             }
-             else
-             {
-                 HIDE_PROGRESS;
-                 [self dismiss];
-             }
-         } failure:^(NSString *failure)
-         {
-             HIDE_PROGRESS;
-         } ];
-    }
-    else {
+        // event add/change
+        [self addNewEvent:currUserId
+           eventStartTime:startTime
+             eventEndTime:endTime
+                    jobID:jobId
+              jobPostUnit:companyName
+             labourTypeID:labourTypeId
+                    notes:sheetDescription];
+    }else {
         // change event
-        
-        // TODO - change events
+        [self changeEvent:labourId
+           eventStartTime:startTime
+             eventEndTime:endTime
+                    jobID:jobId
+             labourTypeID:labourTypeId
+                    notes:sheetDescription];
     }
 }
 
@@ -622,8 +599,8 @@
 // display Job
 - (void)displayJobs:(int)selJobId postUnit:(NSString *)postUnit jobNotes:(NSString *)jobNotes {
     jobId = selJobId;
-    jobPostUnit = [NSString stringWithString:postUnit];
-    jobPostNotes = [NSString stringWithString:jobNotes];
+    companyName = [NSString stringWithString:postUnit];
+    jobDescription = [NSString stringWithString:jobNotes];
     
     if (jobId == kJobId_UNASSIGNED) {
         self.lblJob.hidden = NO;
@@ -632,8 +609,8 @@
         
     } else {
         self.lblJob.hidden = YES;
-        self.lblJobTitle.text = [NSString stringWithFormat:@"%d - %@", jobId, jobPostUnit];
-        self.lblJobDescription.text = [NSString stringWithFormat:@"%@", jobPostNotes];
+        self.lblJobTitle.text = [NSString stringWithFormat:@"%d - %@", jobId, companyName];
+        self.lblJobDescription.text = [NSString stringWithFormat:@"%@", jobDescription];
     }
 }
 
@@ -643,20 +620,20 @@
     Job *oneJob = [[UserContext sharedInstance] getJob:jobId];
     
     if (oneJob == nil) {
-        jobPostUnit = @"";
-        jobPostNotes = @"";
+        companyName = @"";
+        jobDescription = @"";
         
         self.lblJob.hidden = NO;
         self.lblJobTitle.text = @"";
         self.lblJobDescription.text = @"";
     }
     else {
-        jobPostUnit = [NSString stringWithString:oneJob.companyName];
-        jobPostNotes = [NSString stringWithString:oneJob.notes];
+        companyName = [NSString stringWithString:oneJob.companyName];
+        jobDescription = [NSString stringWithString:oneJob.notes];
         
         self.lblJob.hidden = YES;
-        self.lblJobTitle.text = [NSString stringWithFormat:@"%d - %@", jobId, jobPostUnit];
-        self.lblJobDescription.text = [NSString stringWithFormat:@"%@", jobPostNotes];
+        self.lblJobTitle.text = [NSString stringWithFormat:@"%d - %@", jobId, companyName];
+        self.lblJobDescription.text = [NSString stringWithFormat:@"%@", jobDescription];
     }
     
 }
@@ -690,6 +667,107 @@
 
 - (void)dismiss {
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+// add new event function
+- (void)addNewEvent:(int)userId eventStartTime:(NSDate*)eventStartTime eventEndTime:(NSDate*)eventEndTime jobID:(int)jobID jobPostUnit:(NSString*)jobPostUnit labourTypeID:(int)labourTypeID notes:(NSString*)notes
+{
+    static NSUInteger insertCounter = 0;
+    
+    insertCounter = 0;
+    
+    SHOW_PROGRESS(@"Fetching data...");
+
+    
+    [[ServerManager sharedManager] insertTimesheet:userId
+                                         startTime:eventStartTime
+                                           endTime:eventEndTime
+                                             jobID:jobID
+                                       companyName:jobPostUnit
+                                      labourTypeId:labourTypeID
+                                             notes:notes
+                                           success:^(BOOL result)
+     {
+         
+         // add other attendees
+         
+         HIDE_PROGRESS;
+         [self dismiss];
+         
+         /*
+         if (attendeeSeletedArray.count > 0) {
+             
+             for (NSUInteger i = 0; i < attendeeSeletedArray.count; i++) {
+                 NSString *currObj = [attendeeSeletedArray objectAtIndex:i];
+                 
+                 [[ServerManager sharedManager] insertTimesheet:(int)[currObj integerValue]
+                                                      startTime:eventStartTime
+                                                        endTime:eventEndTime
+                                                          jobID:jobID
+                                                    companyName:companyName
+                                                   labourTypeId:labourTypeID
+                                                          notes:notes
+                                                        success:^(BOOL result)
+                  {
+                      
+                      // add other attendees
+                      insertCounter = insertCounter + 1;
+                      if (insertCounter >= attendeeSeletedArray.count) {
+                          
+                          HIDE_PROGRESS;
+                          
+                          [self dismiss];
+                      }
+                      
+                  } failure:^(NSString *failure) {
+                      HIDE_PROGRESS_WITH_FAILURE(failure);
+                  } ];
+             }
+             
+         }
+         else {
+             
+             HIDE_PROGRESS;
+             [self dismiss];
+         }
+         
+         */
+     } failure:^(NSString *failure)
+     {
+         HIDE_PROGRESS;
+     } ];
+    
+}
+
+
+// add new event function
+- (void)changeEvent:(int)labourID eventStartTime:(NSDate*)eventStartTime eventEndTime:(NSDate*)eventEndTime jobID:(int)jobID labourTypeID:(int)labourTypeID notes:(NSString*)notes
+{
+    static NSUInteger insertCounter = 0;
+    
+    insertCounter = 0;
+    
+    SHOW_PROGRESS(@"Fetching data...");
+    
+    
+    [[ServerManager sharedManager] changetimesheet:labourID
+                                   updateStartTime:eventStartTime
+                                     updateEndTime:eventEndTime
+                                             jobID:jobID
+                                      labourTypeId:labourTypeID
+                                             notes:notes
+                                           success:^(BOOL result)
+    {
+        HIDE_PROGRESS;
+        
+        [self dismiss];
+                                               
+        
+    } failure:^(NSString *failure)
+    {
+        HIDE_PROGRESS_WITH_FAILURE(failure);
+        
+    } ];
 }
 
 
@@ -875,47 +953,33 @@
 //*****************************************************
 //      Pubilc functions
 //*****************************************************
-- (void)updateEventWindow:(BOOL)isNewEvent
-                 selJobId:(int)selJobId
-                 labourId:(int)labourId
-           eventStartTime:(NSDate*)eventStartTime
-             eventEndTime:(NSDate*)eventEndTime
-         initLabourTypeId:(int)initLabourTypeId
-                eventNote:(NSString *)eventNote
+- (void)createNewEvent:(NSDate*)eventStartTime eventEndTime:(NSDate*)eventEndTime labourTypeID:(int)labourTypeID
 {
-    isNewEventMode = isNewEvent;
-    
-    jobId = selJobId;
+    isNewEventMode = YES;
     
     isAllDay = NO;
     
+    labourId = kLabourId_UNASSIGNED;
     startTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:eventStartTime];
     endTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:eventEndTime];
-    
-    labourTypeId = initLabourTypeId;
-    note = [NSString stringWithString:eventNote];
+    jobId = kJobId_UNASSIGNED;
+    companyName = @"";
+    labourTypeId = labourTypeID;
+    labourDescription = @"";
 }
 
-- (void)createNewEvent:(NSDate*)eventStartTime eventEndTime:(NSDate*)eventEndTime
+- (void)editSelectEvent:(TimeSheet *)selectedSheet
 {
-    [self updateEventWindow:YES
-                   selJobId:kJobId_UNASSIGNED
-                   labourId:kLabourId_UNASSIGNED
-             eventStartTime:eventStartTime
-               eventEndTime:eventEndTime
-           initLabourTypeId:kLabourTypeId_Labour
-                  eventNote:@""];
-}
-
-- (void)editSelectEvent:(TimeSheet *)sheet
-{
-    [self updateEventWindow:NO
-                   selJobId:sheet.jobID
-                   labourId:sheet.labourID
-             eventStartTime:sheet.startTime
-               eventEndTime:sheet.endTime
-           initLabourTypeId:sheet.labourTypeID
-                  eventNote:sheet.labourDescription];
+    isNewEventMode = NO;
     
+    isAllDay = NO;
+    
+    labourId = selectedSheet.labourID;
+    startTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:selectedSheet.startTime];
+    endTime = [[NSDate alloc] initWithTimeInterval:0 sinceDate:selectedSheet.endTime];
+    jobId = selectedSheet.jobID;
+    companyName = [NSString stringWithString:selectedSheet.companyName];
+    labourTypeId = selectedSheet.labourTypeID;
+    labourDescription = [NSString stringWithString:selectedSheet.labourDescription];
 }
 @end
