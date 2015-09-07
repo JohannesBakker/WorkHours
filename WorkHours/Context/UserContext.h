@@ -25,7 +25,7 @@
 // distance offset for equal location (unit : m)
 #define kDistanceOffset                         (30)
 
-#define kLocalPushNotificationIntervalSec   (10)
+#define kLocalPushNotificationIntervalSec    (10)
 
 @protocol PinMapDelegate;
 @protocol NewEventWindowDelegate;
