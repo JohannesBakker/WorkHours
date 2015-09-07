@@ -694,7 +694,7 @@
          HIDE_PROGRESS;
          [self dismiss];
          
-         /*
+         
          if (attendeeSeletedArray.count > 0) {
              
              for (NSUInteger i = 0; i < attendeeSeletedArray.count; i++) {
@@ -731,7 +731,7 @@
              [self dismiss];
          }
          
-         */
+         
      } failure:^(NSString *failure)
      {
          HIDE_PROGRESS;
