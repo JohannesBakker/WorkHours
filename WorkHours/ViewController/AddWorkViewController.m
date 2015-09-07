@@ -533,12 +533,6 @@
     }
 }
 
-- (void)returnChoosedUserId:(NSMutableArray *)selectedAttendees {
-    attendeeSeletedArray = [[NSMutableArray alloc] initWithArray:selectedAttendees];
-    
-    [self displaySelectedAttendees];
-    
-}
 
 - (IBAction)onAttendeeClicked:(id)sender {
     
@@ -724,9 +718,17 @@
     [self.dtPickerEnd setDate:endTime];
     [self.btnStart setTitle:[self getDateWithFormat:startTime] forState:UIControlStateNormal];
     [self.btnEnd setTitle:[self getDateWithFormat:endTime] forState:UIControlStateNormal];
+}
+
+//**************************************
+//  SelAttendeesViewControllerDelegate
+//**************************************
+- (void)returnChoosedUserId:(NSMutableArray *)selectedAttendees {
+    attendeeSeletedArray = [[NSMutableArray alloc] initWithArray:selectedAttendees];
     
-    
+    [self displaySelectedAttendees];
     
 }
+
 
 @end
