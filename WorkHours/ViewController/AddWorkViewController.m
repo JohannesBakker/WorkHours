@@ -159,6 +159,7 @@
     [uiManager applyViewBorder:self.viewJobBackground borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
     [uiManager applyDisableCustomButtonStyle:self.btnStart];
     [uiManager applyDisableCustomButtonStyle:self.btnEnd];
+    [uiManager applyDisableCustomButtonStyle:self.btnAttendees];
     
     
     //*******************
@@ -944,7 +945,7 @@
     
     [self.dtPickerStart setDate:startTime];
     [self.dtPickerEnd setDate:endTime];
-    
+
     self.lblDate.text = [self getDateWithFormat:startTime];
     self.lblStartTime.text = [self getTimeWithFormat:startTime];
     self.lblEndTime.text = [self getTimeWithFormat:endTime];
