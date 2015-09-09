@@ -36,26 +36,26 @@
                     <rect key="frame" x="0.0" y="0.0" width="270" height="70"/>
                     <subviews>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="7:30" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="K0C-Z4-Mgk" userLabel="lblStartTime">
-                            <rect key="frame" x="0.0" y="5" width="60" height="25"/>
+                            <rect key="frame" x="0.0" y="15" width="60" height="20"/>
                             <constraints>
-                                <constraint firstAttribute="height" constant="25" id="egw-fw-UcA"/>
+                                <constraint firstAttribute="height" constant="20" id="egw-fw-UcA"/>
                                 <constraint firstAttribute="width" constant="60" id="nOc-Xe-v9s"/>
                             </constraints>
-                            <fontDescription key="fontDescription" name="Helvetica" family="Helvetica" pointSize="12"/>
+                            <fontDescription key="fontDescription" name="Helvetica" family="Helvetica" pointSize="13"/>
                             <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                             <nil key="highlightedColor"/>
                         </label>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="23:50" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oCK-yy-bsN" userLabel="lblEndTime">
-                            <rect key="frame" x="0.0" y="40" width="60" height="25"/>
+                            <rect key="frame" x="0.0" y="35" width="60" height="20"/>
                             <constraints>
-                                <constraint firstAttribute="height" constant="25" id="Rka-G8-Mgc"/>
+                                <constraint firstAttribute="height" constant="20" id="Rka-G8-Mgc"/>
                                 <constraint firstAttribute="width" constant="60" id="SgE-iL-vUA"/>
                             </constraints>
-                            <fontDescription key="fontDescription" name="Helvetica" family="Helvetica" pointSize="12"/>
+                            <fontDescription key="fontDescription" name="Helvetica" family="Helvetica" pointSize="13"/>
                             <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
                             <nil key="highlightedColor"/>
                         </label>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="14470 - The Mater Hospital" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R8R-89-ypp" userLabel="lblTitle">
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="14470 - The Mater Hospital" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="R8R-89-ypp" userLabel="lblTitle">
                             <rect key="frame" x="70" y="0.0" width="200" height="35"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="35" id="2b3-fS-BWo"/>
@@ -63,7 +63,7 @@
                             <fontDescription key="fontDescription" name="Helvetica-Bold" family="Helvetica" pointSize="13"/>
                             <nil key="highlightedColor"/>
                         </label>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Commission 2 * RCD in main building and discuss issues with engineers. Will be back to" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NIG-8w-ZB0" userLabel="lblContent">
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="TopLeft" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Commission 2 * RCD in main building and discuss issues with engineers. Will be back to" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NIG-8w-ZB0" userLabel="lblContent">
                             <rect key="frame" x="64" y="35" width="206" height="35"/>
                             <fontDescription key="fontDescription" name="Helvetica" family="Helvetica" pointSize="10"/>
                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -73,9 +73,9 @@
                     <constraints>
                         <constraint firstItem="R8R-89-ypp" firstAttribute="leading" secondItem="K0C-Z4-Mgk" secondAttribute="trailing" constant="10" id="2DG-U1-8Dy"/>
                         <constraint firstItem="K0C-Z4-Mgk" firstAttribute="leading" secondItem="ar3-xa-WY0" secondAttribute="leading" id="5oG-pL-kAF"/>
-                        <constraint firstItem="K0C-Z4-Mgk" firstAttribute="top" secondItem="ar3-xa-WY0" secondAttribute="top" constant="5" id="ASp-o5-vuD"/>
+                        <constraint firstItem="K0C-Z4-Mgk" firstAttribute="top" secondItem="ar3-xa-WY0" secondAttribute="top" constant="15" id="ASp-o5-vuD"/>
                         <constraint firstItem="oCK-yy-bsN" firstAttribute="leading" secondItem="ar3-xa-WY0" secondAttribute="leading" id="BIf-xr-Nma"/>
-                        <constraint firstAttribute="bottom" secondItem="oCK-yy-bsN" secondAttribute="bottom" constant="5" id="Tab-gc-a3O"/>
+                        <constraint firstAttribute="bottom" secondItem="oCK-yy-bsN" secondAttribute="bottom" constant="15" id="Tab-gc-a3O"/>
                         <constraint firstItem="NIG-8w-ZB0" firstAttribute="top" secondItem="R8R-89-ypp" secondAttribute="bottom" id="XTa-Di-Upa"/>
                         <constraint firstAttribute="bottom" secondItem="NIG-8w-ZB0" secondAttribute="bottom" constant="65" id="Zo2-1K-4Po"/>
                         <constraint firstAttribute="trailing" secondItem="NIG-8w-ZB0" secondAttribute="trailing" id="f9y-DI-eTf"/>

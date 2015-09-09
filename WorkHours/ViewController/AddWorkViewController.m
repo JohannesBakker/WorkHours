@@ -121,12 +121,17 @@
 @property (retain, nonatomic) IBOutlet NSLayoutConstraint *constraitTopOfAttendee;
 @property (retain, nonatomic) IBOutlet NSLayoutConstraint *constraitTopOfNote;
 
+@property (weak, nonatomic) IBOutlet UIView *viewConnection;
+@property (weak, nonatomic) IBOutlet UILabel *lblConnection;
+
+
 @end
 
 @implementation AddWorkViewController
 
 @synthesize isTestMode;
 @synthesize isNewEventMode;
+@synthesize nConnections;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -210,6 +215,17 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [uiManager isVisibleStatusBar:self.navigationController isShow:NO];
+    
+    // change view color with connection color
+    self.view.backgroundColor = self.viewConnection.backgroundColor;
+    
+    // status bar text color change with white color
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    
+    // set Connections
+    self.lblConnection.text = [NSString stringWithFormat:@"%d", nConnections];
+    
+    
     userContext.isNewEventWindow = YES;
 }
 
@@ -311,6 +327,7 @@
     controller.delegate = self;
     
     controller.isTestMode = YES;
+    controller.nConnections = nConnections;
     
     [self.navigationController pushViewController:controller animated:YES];
 }
@@ -472,7 +489,9 @@
     controller.arrSelectedAttendees = attendeeSeletedArray;
     controller.delegate = self;
     
-    [self.navigationController pushViewController:controller animated:YES];
+    controller.nConnections = nConnections;
+    
+    [self.navigationController pushViewController:controller animated:YES];    
 }
 
 
@@ -484,6 +503,8 @@
     controller.arrTypes = typeArray;
     controller.selectedTypes = labourTypeId;
     controller.delegate = self;
+    
+    controller.nConnections = nConnections;
     
     [self.navigationController pushViewController:controller animated:YES];
 }

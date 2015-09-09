@@ -9,25 +9,61 @@
 #import "SelLabourTypesViewController.h"
 #import "UIManager.h"
 #import "LabourType.h"
+#import "Constant.h"
 
 @interface SelLabourTypesViewController ()
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 
+@property (weak, nonatomic) IBOutlet UIView *viewConnection;
+@property (weak, nonatomic) IBOutlet UIView *viewTitle;
+@property (weak, nonatomic) IBOutlet UILabel *lblConnection;
+
+
 @end
 
 @implementation SelLabourTypesViewController
 
+@synthesize nConnections;
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:YES];
+//    [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:YES];
+    
+    // hide navigationController
+    [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:NO];
+    
+    // status bar text color change with default color
+    //[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+    
+    // change view color with connection color
+    self.view.backgroundColor = self.viewConnection.backgroundColor;
+    
+    // status bar text color change with white color
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    
+    // set Menu view's border
+    [[UIManager sharedInstance] applyViewBorder:self.viewTitle borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+
+    
+    // set Connections
+    self.lblConnection.text = [NSString stringWithFormat:@"%d", nConnections];
     
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)dismiss {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+
+- (IBAction)onBackClicked:(id)sender {
+    [self dismiss];
 }
 
 /*
@@ -71,7 +107,7 @@
     if (self.delegate) {
         [self.delegate didLabourTypeTap:item.typeID];
         
-        [self.navigationController popViewControllerAnimated:YES];
+        [self dismiss];
     }
 }
 

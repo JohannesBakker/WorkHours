@@ -13,6 +13,7 @@
 
 @property (nonatomic) BOOL              isTestMode;             // Test mode,  YES : testing mode
 @property (nonatomic) BOOL              isNewEventMode;         // Event mode :  (YES : New Event,  NO : Edit Event)
+@property (nonatomic) int              nConnections;    // Personal hospital connections
 
 - (void)createNewEvent:(NSDate*)eventStartTime eventEndTime:(NSDate*)eventEndTime labourTypeID:(int)labourTypeID;
 - (void)editSelectEvent:(TimeSheet *)sheet;

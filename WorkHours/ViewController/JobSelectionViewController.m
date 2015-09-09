@@ -28,10 +28,15 @@
 @property (weak, nonatomic) IBOutlet UITableView *viewJobs;
 @property (retain, nonatomic) IBOutlet UIView *viewButton;
 
+@property (weak, nonatomic) IBOutlet UIView *viewConnection;
+@property (weak, nonatomic) IBOutlet UILabel *lblConnection;
+
+
 @end
 
 @implementation JobSelectionViewController
 
+@synthesize nConnections;
 
 
 @synthesize isTestMode;
@@ -39,6 +44,15 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    // change view color with connection color
+    self.view.backgroundColor = self.viewConnection.backgroundColor;
+    
+    // status bar text color change with white color
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    
+    // set Connections
+    self.lblConnection.text = [NSString stringWithFormat:@"%d", nConnections];
     
     // arrJobs = [NSMutableArray array];
     arrJobs = [UserContext sharedInstance].arrJobs;

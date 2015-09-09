@@ -23,4 +23,6 @@
 
 @property (nonatomic, retain) id<SelLabourTypesViewControllerDelegate> delegate;
 
+@property (nonatomic) int  nConnections;    // Personal hospital connections
+
 @end

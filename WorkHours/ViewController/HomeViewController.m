@@ -28,7 +28,7 @@
 #define kAssignedPinImage           "purple_pin.png"
 #define kUnassignedPinImage       "red_pin.png"
 
-#define kMapZoom                6//12
+#define kMapZoom                13//6//12
 
 @interface HomeViewController () <GMSMapViewDelegate, MarkerViewDelegate, JTCalendarDataSource, GDIInfinitePageScrollViewControllerDelegate, PinMapDelegate> {
     
@@ -380,7 +380,8 @@
     TimeSheet *sheet = [userContext getCoveredTimesheet:onePin.creationTime];
     
     NSDateFormatter *timeFormat = [NSDateFormatter new];
-    timeFormat.dateFormat = @"hh:mm a";
+    //timeFormat.dateFormat = @"hh:mm a";
+    timeFormat.dateFormat = @"HH:mm";
     
     NSString *jobTitle = [NSString stringWithFormat:@"%d - %@", sheet.jobID, sheet.companyName];
     
@@ -729,6 +730,7 @@
     AddWorkViewController *vc = [stb instantiateViewControllerWithIdentifier:@"addWorkViewController"];
     
     vc.isTestMode = isTestMode;
+    vc.nConnections = (int)[userContext getTimesheetsConnections:startTime];
     
     
     [vc createNewEvent:startTime eventEndTime:endTime labourTypeID:initLabourTypeId];
@@ -792,6 +794,8 @@
     
     
     vc.isTestMode = isTestMode;
+    vc.nConnections = (int)[userContext getTimesheetsConnections:sheet.startTime];
+    
     [vc editSelectEvent:sheet];
     
     [self.navigationController pushViewController:vc animated:YES];

@@ -19,6 +19,7 @@
 @interface JobSelectionViewController : UIViewController
 
 @property (nonatomic) BOOL isTestMode;
+@property (nonatomic) int  nConnections;    // Personal hospital connections
 
 @property (nonatomic, retain) id<JobSelectionViewControllerDelegate> delegate;
 

@@ -9,6 +9,7 @@
 #import "SelAttendeesViewController.h"
 #import "UIManager.h"
 #import "UserInfo.h"
+#import "Constant.h"
 
 @interface SelAttendeesViewController () <UITableViewDelegate, UITableViewDataSource> {
     
@@ -20,23 +21,51 @@
 @property(retain, nonatomic) NSMutableArray *selectedEntriesArr;
 @property (retain, nonatomic) IBOutlet UITableView *tableView;
 
+@property (weak, nonatomic) IBOutlet UIView *viewConnection;
+@property (weak, nonatomic) IBOutlet UIView *viewTitle;
+@property (weak, nonatomic) IBOutlet UILabel *lblConnection;
+
+
 @end
 
 @implementation SelAttendeesViewController
 
 @synthesize arrAttendees, arrSelectedAttendees;
 @synthesize delegate;
+@synthesize nConnections;
 
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
+    /*
     [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:YES];
+    
+    // status bar text color change with default color
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
     
     UIBarButtonItem *rightButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(onClickedDone:)];
     
     self.navigationItem.rightBarButtonItem = rightButton;
+     */
+    
+    // hide navigationController
+    [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:NO];
+    
+    // change view color with connection color
+    self.view.backgroundColor = self.viewConnection.backgroundColor;
+    
+    // status bar text color change with white color
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    
+    // set Menu view's border
+    [[UIManager sharedInstance] applyViewBorder:self.viewTitle borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    
+    
+    // set Connections
+    self.lblConnection.text = [NSString stringWithFormat:@"%d", nConnections];
+    
     
     isSelectedAll = NO;
     
@@ -47,6 +76,37 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+- (void)dismiss {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+
+- (IBAction)onBackClicked:(id)sender {
+    [self dismiss];
+}
+
+- (IBAction)onClickedDone:(id)sender {
+    self.selectedEntriesArr = [NSMutableArray array];
+    
+    for (id key in [self.selectionStatusDic allKeys]) {
+        
+        if ([[self.selectionStatusDic objectForKey:key] boolValue]) {
+            [self.selectedEntriesArr addObject:key];
+        }
+    }
+    
+    if (delegate)
+    {
+        [delegate returnChoosedUserId:self.selectedEntriesArr];
+    }
+    
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+
+
+
 
 - (void)initSelectionInfo {
     NSUInteger selCounter = 0;
@@ -166,25 +226,6 @@
        [tableView reloadData];
     });
 }
-
-- (IBAction)onClickedDone:(id)sender {
-    self.selectedEntriesArr = [NSMutableArray array];
-    
-    for (id key in [self.selectionStatusDic allKeys]) {
-        
-        if ([[self.selectionStatusDic objectForKey:key] boolValue]) {
-            [self.selectedEntriesArr addObject:key];
-        }
-    }
-    
-    if (delegate)
-    {
-        [delegate returnChoosedUserId:self.selectedEntriesArr];
-    }
-    
-    [self.navigationController popViewControllerAnimated:YES];
-}
-
 
 
 @end
