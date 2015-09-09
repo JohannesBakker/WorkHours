@@ -118,10 +118,12 @@
         // download timesheets for current month
         [self getTimesheetsByMonthFromServer:selDate];
         
-        
         // refresh UI
         [self updateCalendarUI];
     }
+   
+    // current VC is Home
+    [UserContext sharedInstance].isHomeView = YES;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -129,6 +131,9 @@
     
     // status bar text color change with default color
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+    
+    // current VC isn't Home
+    [UserContext sharedInstance].isHomeView = NO;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -302,8 +307,6 @@
         // download timesheets for current month
         [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
     }];
-
-    
     
     
     // init Map data

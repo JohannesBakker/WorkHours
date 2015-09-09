@@ -125,22 +125,8 @@
 
 @implementation AddWorkViewController
 
-//@synthesize startTime, endTime, isTestMode;
-//@synthesize initLabourTypeId;
 @synthesize isTestMode;
 @synthesize isNewEventMode;
-//@synthesize sheet;
-
-
-/*
-@synthesize jobId, jobPostUnit, jobPostNotes;
-@synthesize isAllDay;
-@synthesize startTime, endTime;
-@synthesize labourTypeId;
-@synthesize note;
-*/
-
-
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -302,7 +288,8 @@
                     notes:sheetDescription];
     }else {
         // change event
-        [self changeEvent:labourId
+        [self changeEvent:currUserId
+                 labourID:labourId
            eventStartTime:startTime
              eventEndTime:endTime
                     jobID:jobId
@@ -742,7 +729,7 @@
 
 
 // add new event function
-- (void)changeEvent:(int)labourID eventStartTime:(NSDate*)eventStartTime eventEndTime:(NSDate*)eventEndTime jobID:(int)jobID labourTypeID:(int)labourTypeID notes:(NSString*)notes
+- (void)changeEvent:(int)userId labourID:(int)labourID eventStartTime:(NSDate*)eventStartTime eventEndTime:(NSDate*)eventEndTime jobID:(int)jobID labourTypeID:(int)labourTypeID notes:(NSString*)notes
 {
     static NSUInteger insertCounter = 0;
     
@@ -750,8 +737,8 @@
     
     SHOW_PROGRESS(@"Fetching data...");
     
-    
-    [[ServerManager sharedManager] changetimesheet:labourID
+    [[ServerManager sharedManager] changetimesheet:userId
+                                          labourID:labourID
                                    updateStartTime:eventStartTime
                                      updateEndTime:eventEndTime
                                              jobID:jobID

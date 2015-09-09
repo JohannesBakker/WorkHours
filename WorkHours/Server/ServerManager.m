@@ -750,13 +750,14 @@ NSString * const WhereNowErrorDomain = @"com.wherenow";
     
 }
 
-- (void)changetimesheet:(int)labourID updateStartTime:(NSDate*)updateStartTime updateEndTime:(NSDate*)updateEndTime jobID:(int)jobID labourTypeId:(int)labourTypeId notes:(NSString*)notes success:(void (^)(BOOL))sucess failure:(void (^)(NSString *))failure
+- (void)changetimesheet:(int)userId labourID:(int)labourID updateStartTime:(NSDate*)updateStartTime updateEndTime:(NSDate*)updateEndTime jobID:(int)jobID labourTypeId:(int)labourTypeId notes:(NSString*)notes success:(void (^)(BOOL))sucess failure:(void (^)(NSString *))failure
 {
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
     
     NSString *sessionId = [[AppContext sharedInstance] loadSession];
-    NSDictionary *params = @{@"labour_id": [NSString stringWithFormat:@"%d", labourID],
+    NSDictionary *params = @{@"user_id": [NSString stringWithFormat:@"%d", userId],
+                             @"labour_id": [NSString stringWithFormat:@"%d", labourID],
                              @"update_start_time": [dateFormatter stringFromDate:updateStartTime],
                              @"update_end_time": [dateFormatter stringFromDate:updateEndTime],
                              @"job_id": [NSString stringWithFormat:@"%d", jobID],

@@ -46,6 +46,12 @@
     NSDate *prevNotificationTime;
     
     NSString *strNotifaction;
+    
+    // Alert reserving variables
+    BOOL isReservedJobAlert;
+    NSString *resAlertTitle;
+    NSString *resAlertMsg;
+    int resAlertType;
 }
 
 @end
@@ -295,6 +301,18 @@
         
         nAlertViewType = kAlertType_NoTimesheet;
         strNotifaction = [NSString stringWithFormat:@"%@", @"Please allocate your time to a Job"];
+    }
+    
+    // if curretn VC isn't HomeView then reserve message
+    if (![UserContext sharedInstance].isHomeView) {
+        resAlertTitle = [NSString stringWithString:title];
+        resAlertMsg = [NSString stringWithString:message];
+        resAlertType = nAlertViewType;
+        
+        isReservedJobAlert = YES;
+        
+        isAlertDisplay = NO;
+        return;
     }
     
     // timer stop, and alert display

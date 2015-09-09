@@ -16,6 +16,8 @@
     
     NSSortDescriptor *userPinSortDescriptor;
     NSMutableArray *userPinSortDescriptors;
+    
+    
 }
 
 @end

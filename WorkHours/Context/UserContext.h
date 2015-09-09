@@ -15,7 +15,7 @@
 
 // User location refresh timer interval :  30 mins
 #if (kTestMode == YES)
-    #define kLocationRecordingIntervalMins                  (5)
+    #define kLocationRecordingIntervalMins                  (2)
 #else
     #define kLocationRecordingIntervalMins                  (30)
 #endif
@@ -59,6 +59,7 @@
 @property (nonatomic) BOOL isAppBackground;     // YES : in Background,   NO : in Foreground
 @property (nonatomic) BOOL isTestMode;
 @property (nonatomic) BOOL isNewEventWindow;
+@property (nonatomic) BOOL isHomeView;          // YES : Map or Calendar View
 
 @property (weak, nonatomic) NSObject <PinMapDelegate> *mapDelegate;
 @property (weak, nonatomic) NSObject <NewEventWindowDelegate> *addEventWindowDelegate;
