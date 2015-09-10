@@ -168,6 +168,9 @@
         [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
     }
     
+    // init previous time with current time
+    prevNotificationTime = [NSDate date];
+    
 }
 
 
@@ -312,6 +315,17 @@
         isReservedJobAlert = YES;
         
         isAlertDisplay = NO;
+        
+        // display notification repeatly
+        if (userContext.isAppBackground == YES) {
+            
+            NSDate *time = [NSDate date];
+            
+            if ([time timeIntervalSinceDate:prevNotificationTime] >= kLocalPushNotificationIntervalSec) {
+                [self displayPushNotification];
+            }
+        }
+
         return;
     }
     
@@ -325,6 +339,8 @@
     [alertView show];
     
     isAlertDisplay = YES;
+    
+    isReservedJobAlert = NO;
 }
 
 
@@ -417,6 +433,7 @@
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
     
     UILocalNotification *localNotification = [[UILocalNotification alloc] init];
+    
     if (localNotification == nil) {
         return;
     }

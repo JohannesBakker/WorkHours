@@ -14,6 +14,7 @@
 @interface SelAttendeesViewController () <UITableViewDelegate, UITableViewDataSource> {
     
     BOOL isSelectedAll;
+    NSUInteger nSelectedUsers;
 }
 
 
@@ -137,6 +138,8 @@
         isSelectedAll = YES;
     else
         isSelectedAll = NO;
+    
+    nSelectedUsers = selCounter;
 }
 
 /*
@@ -174,10 +177,12 @@
         // All Attendees
         labelUser.text = @"All";
 
-        if (isSelectedAll)
+        if (isSelectedAll) {
             ivSel.hidden = NO;
-        else
+        }
+        else {
             ivSel.hidden = YES;
+        }
     }
     else {
         UserInfo *oneUser = [arrAttendees objectAtIndex:actRow];
@@ -201,9 +206,13 @@
     if (actRow == -1) {
         if (isSelectedAll == YES) {
             isSelectedAll = NO;
+            
+            nSelectedUsers = 0;
         }
         else {
             isSelectedAll = YES;
+            
+            nSelectedUsers = arrAttendees.count;
         }
         
         for (id key in [self.selectionStatusDic allKeys]) {
@@ -214,18 +223,32 @@
         UserInfo *oneUser = [arrAttendees objectAtIndex:actRow];
         BOOL isSelected = [[self.selectionStatusDic objectForKey:[NSString stringWithFormat:@"%d", oneUser.userID]] boolValue];
         
-        if (isSelected == YES)
+        if (isSelected == YES) {
             isSelected = NO;
-        else
+            
+            if (nSelectedUsers > 0)
+                nSelectedUsers --;
+        }
+        else {
             isSelected = YES;
+            
+            if (nSelectedUsers < arrAttendees.count)
+                nSelectedUsers ++;
+        }
         
         [self.selectionStatusDic setObject:[NSNumber numberWithBool:isSelected] forKey:[NSString stringWithFormat:@"%d", oneUser.userID]];
+        
+        // check all selected
+        if (nSelectedUsers == arrAttendees.count) {
+            isSelectedAll = YES;
+        } else {
+            isSelectedAll = NO;
+        }
     }
     
     dispatch_async (dispatch_get_main_queue(), ^{
        [tableView reloadData];
     });
 }
-
 
 @end

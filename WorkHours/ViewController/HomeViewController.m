@@ -739,7 +739,7 @@
 
 
 //================================================
-//          PinMap delegate
+//          PinMapDelegate functions
 //================================================
 - (void)displayUserLocation
 {
