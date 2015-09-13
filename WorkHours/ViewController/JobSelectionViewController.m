@@ -19,17 +19,27 @@
 
 #define kJobCellHeight      70.0f
 
-@interface JobSelectionViewController () <UITableViewDelegate, UITableViewDataSource, JobNumberCellDelegate, JobDistanceCellDelegate> {
+#define kAnimationDuration      2.0f
+
+@interface JobSelectionViewController () <UIGestureRecognizerDelegate, UITextFieldDelegate,   UITableViewDelegate, UITableViewDataSource, JobNumberCellDelegate, JobDistanceCellDelegate> {
     NSMutableArray *arrJobs;
+    NSMutableArray *arrFilterJobs;
     BOOL isDisplayByNumber;
+    
+    float init_constrait;
 }
 
 
 @property (weak, nonatomic) IBOutlet UITableView *viewJobs;
-@property (retain, nonatomic) IBOutlet UIView *viewButton;
+@property (retain, nonatomic) IBOutlet UIView *viewTitle;
 
 @property (weak, nonatomic) IBOutlet UIView *viewConnection;
 @property (weak, nonatomic) IBOutlet UILabel *lblConnection;
+
+@property (weak, nonatomic) IBOutlet UIView *viewJobNumber;
+@property (weak, nonatomic) IBOutlet UITextField *txtJobNumber;
+@property (retain, nonatomic) IBOutlet NSLayoutConstraint *constraitTopOfJobNumber;
+
 
 
 @end
@@ -45,6 +55,21 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    isDisplayByNumber = YES;
+    
+    // set Title view's border
+    [[UIManager sharedInstance] applyViewBorder:self.viewTitle borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    
+    // Keyboard hiding registering
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]
+                                   initWithTarget:self
+                                   action:@selector(dismissKeyboard)];
+    tap.delegate = self;
+    [self.view addGestureRecognizer:tap];
+    
+    // register textfield notification
+    [self registerForTextFieldNotifications];
+
     // change view color with connection color
     self.view.backgroundColor = self.viewConnection.backgroundColor;
     
@@ -54,22 +79,21 @@
     // set Connections
     self.lblConnection.text = [NSString stringWithFormat:@"%d", nConnections];
     
-    // arrJobs = [NSMutableArray array];
-    arrJobs = [UserContext sharedInstance].arrJobs;
-    
-    isDisplayByNumber = YES;
-    
-    // set Buttone view's border
-    [[UIManager sharedInstance] applyViewBorder:self.viewButton borderColor:kViewBorderColor borderWidth:kViewBorderWidth];
+    // show Job number text box
+    init_constrait = self.constraitTopOfJobNumber.constant;
+    [self showJobNumber];
     
     // remove tableviewcell separator line
     self.viewJobs.separatorStyle = UITableViewCellSeparatorStyleNone;
     
+    //========================
+    // init local variables
+    //========================
+    
     arrJobs = [UserContext sharedInstance].arrJobs;
-    
     [self resortJobs];
+
     [self.viewJobs reloadData];
-    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -79,24 +103,6 @@
 
 - (void)dismiss {
     [self.navigationController popViewControllerAnimated:YES];
-}
-
-
-- (IBAction)onBackClicked:(id)sender {
-    [self dismiss];
-}
-
-- (IBAction)onChangedSortType:(id)sender {
-    UISegmentedControl *segType = (UISegmentedControl*)sender;
-    
-    if (segType.selectedSegmentIndex == 0)
-        isDisplayByNumber = YES;
-    else
-        isDisplayByNumber = NO;
-    
-    [self resortJobs];
-    [self.viewJobs reloadData];
-
 }
 
 - (void)resortJobs {
@@ -117,7 +123,75 @@
     NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
     
     [arrJobs sortUsingDescriptors:sortDescriptors];
+    
+    if (isDisplayByNumber) {
+        [self filterJobs:self.txtJobNumber.text];
+    } else {
+        [self filterJobs:@""];
+    }
 }
+
+- (void)showJobNumber {
+    [UIView animateWithDuration:kAnimationDuration animations:^{
+        if (isDisplayByNumber) {
+            self.constraitTopOfJobNumber.constant = init_constrait;
+        }
+        else
+        {
+            self.constraitTopOfJobNumber.constant = init_constrait - self.viewJobNumber.frame.size.height;
+        }
+    } completion:^(BOOL finished) {
+    }];
+}
+
+- (void)dismissKeyboard {
+    [self.txtJobNumber resignFirstResponder];
+}
+
+- (void)filterJobs:(NSString *)szJobNumber {
+    if (szJobNumber == nil || szJobNumber.length == 0) {
+        arrFilterJobs = [[NSMutableArray alloc] initWithArray:arrJobs];
+    } else {
+        
+        arrFilterJobs = [NSMutableArray array];
+        
+        for (int i = 0; i < arrJobs.count; i++) {
+            Job *currJob = [arrJobs objectAtIndex:i];
+            NSString *currJobNumber = [NSString stringWithFormat:@"%d", currJob.jobID];
+            
+            if ([currJobNumber rangeOfString:szJobNumber].location == NSNotFound) {
+                
+            } else {
+                [arrFilterJobs addObject:currJob];
+            }
+        }
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+// Action methods
+////////////////////////////////////////////////////////////
+- (IBAction)onBackClicked:(id)sender {
+    [self dismiss];
+}
+
+- (IBAction)onChangedSortType:(id)sender {
+    UISegmentedControl *segType = (UISegmentedControl*)sender;
+    
+    if (segType.selectedSegmentIndex == 0)
+        isDisplayByNumber = YES;
+    else
+        isDisplayByNumber = NO;
+    
+    // Show/Hide Job number text box
+    [self showJobNumber];
+    
+    [self resortJobs];
+    [self.viewJobs reloadData];
+}
+
+
 
 
 /*
@@ -139,8 +213,9 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    if (arrJobs && arrJobs.count > 0)
-        return arrJobs.count;
+    
+    if (arrFilterJobs && arrFilterJobs.count > 0)
+        return arrFilterJobs.count;
     else
         return 0;
 }
@@ -153,7 +228,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    Job *currJob = [arrJobs objectAtIndex:indexPath.row];
+    Job *currJob = [arrFilterJobs objectAtIndex:indexPath.row];
     
     if (isDisplayByNumber) {
         JobNumberCell *cell = (JobNumberCell*)[tableView dequeueReusableCellWithIdentifier:@"JobNumberCell"];
@@ -181,13 +256,53 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    Job *selJob = [arrJobs objectAtIndex:indexPath.row];
+    Job *selJob = [arrFilterJobs objectAtIndex:indexPath.row];
     
     if (self.delegate) {
         [self.delegate didJobSelected:selJob.jobID postUnit:selJob.companyName notes:selJob.notes];
         
         [self dismiss];
     }
+}
+
+
+////////////////////////////////////////////////////////////
+// UIGestureRecognizerDelegate methods
+////////////////////////////////////////////////////////////
+
+#pragma mark UIGestureRecognizerDelegate methods
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    
+    if ([touch.view isDescendantOfView:self.viewJobs]) {
+        
+        // Don't let selections of auto-complete entries fire the
+        // gesture recognizer
+        return NO;
+    }
+    
+    return YES;
+}
+
+////////////////////////////////////////////////////////////
+// UITextField Notification methods
+////////////////////////////////////////////////////////////
+-(void)registerForTextFieldNotifications {
+    
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    
+    [notificationCenter addObserver:self
+                           selector:@selector (handle_TextFieldTextChanged:)
+                               name:UITextFieldTextDidChangeNotification
+                             object:self.txtJobNumber];
+    
+}
+
+
+- (void) handle_TextFieldTextChanged:(id)notification {
+    [self filterJobs:self.txtJobNumber.text];
+    [self.viewJobs reloadData];
 }
 
 

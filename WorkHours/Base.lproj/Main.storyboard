@@ -141,6 +141,27 @@
                                     <constraint firstAttribute="centerX" secondItem="9b5-Ht-DML" secondAttribute="centerX" id="xar-fl-66l"/>
                                 </constraints>
                             </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kuu-8z-Y5h" userLabel="viewJobNumber">
+                                <rect key="frame" x="0.0" y="164" width="600" height="50"/>
+                                <subviews>
+                                    <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Job Number" textAlignment="center" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="BUE-Ss-Qra" userLabel="txtJobNumber">
+                                        <rect key="frame" x="30" y="0.0" width="540" height="40"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                        <textInputTraits key="textInputTraits" keyboardType="decimalPad" returnKeyType="done"/>
+                                        <connections>
+                                            <outlet property="delegate" destination="qUP-J5-OIM" id="VK9-O2-fdK"/>
+                                        </connections>
+                                    </textField>
+                                </subviews>
+                                <color key="backgroundColor" red="0.96862745098039216" green="0.96862745098039216" blue="0.95686274509803915" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstItem="BUE-Ss-Qra" firstAttribute="leading" secondItem="kuu-8z-Y5h" secondAttribute="leading" constant="30" id="4FJ-rk-tSP"/>
+                                    <constraint firstAttribute="bottom" secondItem="BUE-Ss-Qra" secondAttribute="bottom" constant="10" id="EGu-wh-mCj"/>
+                                    <constraint firstItem="BUE-Ss-Qra" firstAttribute="top" secondItem="kuu-8z-Y5h" secondAttribute="top" id="fLe-HP-ied"/>
+                                    <constraint firstAttribute="trailing" secondItem="BUE-Ss-Qra" secondAttribute="trailing" constant="30" id="w2z-Eo-htr"/>
+                                    <constraint firstAttribute="height" constant="50" id="xU7-t1-VeD"/>
+                                </constraints>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Wo5-DG-Efx" userLabel="viewButton">
                                 <rect key="frame" x="0.0" y="84" width="600" height="80"/>
                                 <subviews>
@@ -173,7 +194,7 @@
                                 </constraints>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="70" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="1cY-K8-C6K">
-                                <rect key="frame" x="0.0" y="164" width="600" height="436"/>
+                                <rect key="frame" x="0.0" y="214" width="600" height="386"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <view key="tableFooterView" contentMode="scaleToFill" id="ZqX-ze-jnH">
                                     <rect key="frame" x="0.0" y="278" width="600" height="44"/>
@@ -307,29 +328,35 @@
                             <constraint firstAttribute="bottom" secondItem="1cY-K8-C6K" secondAttribute="bottom" id="5U9-3d-3Xb"/>
                             <constraint firstItem="Pm1-xK-jF1" firstAttribute="leading" secondItem="fZf-RM-wqt" secondAttribute="leading" id="EXX-P4-KT1"/>
                             <constraint firstAttribute="trailing" secondItem="Pm1-xK-jF1" secondAttribute="trailing" id="FmG-Ga-jlo"/>
-                            <constraint firstItem="Pm1-xK-jF1" firstAttribute="top" secondItem="fZf-RM-wqt" secondAttribute="top" constant="50" id="FpP-gj-0eI"/>
+                            <constraint firstItem="kuu-8z-Y5h" firstAttribute="top" secondItem="Wo5-DG-Efx" secondAttribute="bottom" id="GBW-zN-KOA"/>
                             <constraint firstAttribute="trailing" secondItem="1cY-K8-C6K" secondAttribute="trailing" id="HEJ-r9-9S8"/>
                             <constraint firstItem="Wo5-DG-Efx" firstAttribute="leading" secondItem="fZf-RM-wqt" secondAttribute="leadingMargin" constant="-16" id="INy-3o-AWs"/>
-                            <constraint firstItem="1cY-K8-C6K" firstAttribute="top" secondItem="Wo5-DG-Efx" secondAttribute="bottom" id="L0M-G7-297"/>
+                            <constraint firstItem="1cY-K8-C6K" firstAttribute="top" secondItem="Wo5-DG-Efx" secondAttribute="bottom" constant="200" id="L0M-G7-297"/>
                             <constraint firstItem="sQA-Gp-omn" firstAttribute="leading" secondItem="fZf-RM-wqt" secondAttribute="leading" id="OSA-qy-ZDs"/>
                             <constraint firstItem="1cY-K8-C6K" firstAttribute="leading" secondItem="fZf-RM-wqt" secondAttribute="leading" id="dP1-mu-fWu"/>
+                            <constraint firstAttribute="trailing" secondItem="kuu-8z-Y5h" secondAttribute="trailing" id="hE1-EV-o7d"/>
+                            <constraint firstItem="kuu-8z-Y5h" firstAttribute="leading" secondItem="fZf-RM-wqt" secondAttribute="leading" id="hT5-a3-VtN"/>
                             <constraint firstAttribute="trailing" secondItem="sQA-Gp-omn" secondAttribute="trailing" id="kyj-nr-hDD"/>
                             <constraint firstItem="Wo5-DG-Efx" firstAttribute="top" secondItem="Pm1-xK-jF1" secondAttribute="bottom" id="lOH-aE-rnL"/>
                             <constraint firstItem="Pm1-xK-jF1" firstAttribute="top" secondItem="sQA-Gp-omn" secondAttribute="bottom" id="n9D-ud-kT6"/>
                             <constraint firstAttribute="trailingMargin" secondItem="Wo5-DG-Efx" secondAttribute="trailing" constant="-16" id="yM3-hj-rYY"/>
                             <constraint firstItem="sQA-Gp-omn" firstAttribute="top" secondItem="qcG-Y0-3YH" secondAttribute="bottom" id="z1o-tt-xby"/>
+                            <constraint firstItem="1cY-K8-C6K" firstAttribute="top" secondItem="kuu-8z-Y5h" secondAttribute="bottom" id="zEx-7l-bY5"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
-                                <exclude reference="FpP-gj-0eI"/>
+                                <exclude reference="L0M-G7-297"/>
                             </mask>
                         </variation>
                     </view>
                     <connections>
+                        <outlet property="constraitTopOfJobNumber" destination="GBW-zN-KOA" id="Hn5-3M-h1y"/>
                         <outlet property="lblConnection" destination="2Pu-JT-O0I" id="QDy-2M-vC9"/>
-                        <outlet property="viewButton" destination="Wo5-DG-Efx" id="GPP-fE-OwP"/>
+                        <outlet property="txtJobNumber" destination="BUE-Ss-Qra" id="ojZ-F0-ANs"/>
                         <outlet property="viewConnection" destination="sQA-Gp-omn" id="e9g-g2-agf"/>
+                        <outlet property="viewJobNumber" destination="kuu-8z-Y5h" id="6Dx-by-h1e"/>
                         <outlet property="viewJobs" destination="1cY-K8-C6K" id="e7B-Q9-ARj"/>
+                        <outlet property="viewTitle" destination="Pm1-xK-jF1" id="lbg-cN-979"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cqr-Yc-TIi" userLabel="First Responder" sceneMemberID="firstResponder"/>

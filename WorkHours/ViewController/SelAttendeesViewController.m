@@ -26,7 +26,6 @@
 @property (weak, nonatomic) IBOutlet UIView *viewTitle;
 @property (weak, nonatomic) IBOutlet UILabel *lblConnection;
 
-
 @end
 
 @implementation SelAttendeesViewController
