@@ -18,9 +18,6 @@
 #import "TimeSheet.h"
 #import "LabourType.h"
 
-#define kAlertType_AwayLocation    1
-#define kAlertType_TodayWorking    2
-#define kAlertType_NoTimesheet      3
 
 @interface AppDelegate () <UserLocationManagerDelegate> {
     int nAlertViewType;
@@ -116,6 +113,7 @@
 
     // init alert variable
     isAlertDisplay = NO;
+    userContext.isAlertDisplay = NO;
 
     strNotifaction = [[NSString alloc] init];
     
@@ -253,9 +251,11 @@
 
 - (void)checkUserLocation:(NSDate *)currTime {
     
+    /*
     if (isAlertDisplay) {
         return;
     }
+     */
     
     TimeSheet *coveredTimesheet = [userContext getCoveredTimesheet:currTime];
     NSString *title = @"Are you working?";
@@ -264,7 +264,7 @@
     double currLat = [appContext loadUserLocationLat];
     double currLon = [appContext loadUserLocationLng];
     
-    nAlertViewType = kAlertType_AwayLocation;
+    nAlertViewType = ALERT_AWAY_LOCATION;
     
     if (coveredTimesheet)
     {
@@ -278,7 +278,7 @@
                     
                     title = @"Are you working?";
                     message = @"No : Don't work,  Yes : Working";
-                    nAlertViewType = kAlertType_AwayLocation;
+                    nAlertViewType = ALERT_AWAY_LOCATION;
                     strNotifaction = [NSString stringWithFormat:@"%@", @"Are you working?"];
                 }
                 break;
@@ -292,7 +292,7 @@
             default:
                 title = @"Are you working today?";
                 message = @"No : Sick,  Yes : working";
-                nAlertViewType = kAlertType_TodayWorking;
+                nAlertViewType = ALERT_TODAY_WORKING;
                 strNotifaction = [NSString stringWithFormat:@"%@", @"Are you working today?"];
                 break;
         }
@@ -302,9 +302,25 @@
         title = @"Please allocate your time to a Job";
         message = @"No : Don't allocate,  Yes : allocate";
         
-        nAlertViewType = kAlertType_NoTimesheet;
+        nAlertViewType = ALERT_NO_TIMESHEET;
         strNotifaction = [NSString stringWithFormat:@"%@", @"Please allocate your time to a Job"];
     }
+    
+    isAlertDisplay = YES;
+    userContext.isAlertDisplay = YES;
+    
+    // reserve alert
+    [userContext reserveAlert:nAlertViewType title:title msg:message];
+    
+    if (userContext.isAppBackground) {
+        // push notification
+        [self displayPushNotification];
+    } else {
+        // display alert
+        [userContext displayAlert];
+    }
+    
+    /*
     
     // if curretn VC isn't HomeView then reserve message
     if (![UserContext sharedInstance].isHomeView) {
@@ -341,6 +357,8 @@
     isAlertDisplay = YES;
     
     isReservedJobAlert = NO;
+     
+     */
 }
 
 
@@ -357,9 +375,9 @@
     
     if (buttonIndex == 1) {
         
-        if ((nAlertViewType == kAlertType_AwayLocation)
-            || (nAlertViewType == kAlertType_TodayWorking)
-            || (nAlertViewType == kAlertType_NoTimesheet)) {
+        if ((nAlertViewType == ALERT_AWAY_LOCATION)
+            || (nAlertViewType == ALERT_TODAY_WORKING)
+            || (nAlertViewType == ALERT_NO_TIMESHEET)) {
             
             [[ServerManager sharedManager] insertUserPin:[appContext loadUserID]
                                                      lat:lat
@@ -378,7 +396,7 @@
                                                            userInfo:nil
                                                             repeats:YES];
             
-            if (nAlertViewType == kAlertType_NoTimesheet) {
+            if (nAlertViewType == ALERT_NO_TIMESHEET) {
                 NSDate *startTime = [NSDate date];
                 NSDate *endTime = [[NSDate alloc] initWithTimeInterval:3600 sinceDate:startTime];
                 [self gotoNewEventWindow:startTime endTime:endTime initLabourTypeId:kLabourTypeId_Labour];
@@ -386,7 +404,7 @@
         }
     }
     else {
-        if (nAlertViewType == kAlertType_TodayWorking) {
+        if (nAlertViewType == ALERT_TODAY_WORKING) {
             
             NSString *startDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
                                        (int)prevRecordTime.year, (int)prevRecordTime.month, (int)prevRecordTime.day, kDayWorkTime_BeginHour, kDayWorkTime_BeginMin];
@@ -502,7 +520,7 @@
     }
     
     // display notification repeatly
-    if (userContext.isAppBackground == YES && isAlertDisplay == YES) {
+    if (userContext.isAppBackground == YES && userContext.isAlertDisplay == YES) {
         if ([currTime timeIntervalSinceDate:prevNotificationTime] >= kLocalPushNotificationIntervalSec) {
             [self displayPushNotification];
         }
@@ -544,7 +562,7 @@
 - (void)checkLocationNotification:(NSDate *)selectDate {
     [self checkUserLocation:selectDate];
     
-    if (userContext.isAppBackground == YES && isAlertDisplay == YES) {
+    if (userContext.isAppBackground == YES && userContext.isAlertDisplay == YES) {
         // display push notification and return
         [self displayPushNotification];
     }

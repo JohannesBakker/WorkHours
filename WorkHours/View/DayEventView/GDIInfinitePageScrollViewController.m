@@ -101,7 +101,7 @@
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-//    [self unloadUnusedViewControllers];
+    [self unloadUnusedViewControllers];
 }
 
 
@@ -367,7 +367,7 @@
             if (vc.view) {
                 [vc.view removeFromSuperview];
                 vc.view = nil;
-//                [vc viewDidUnload];
+                [vc viewDidUnload];
             }
         }
     }

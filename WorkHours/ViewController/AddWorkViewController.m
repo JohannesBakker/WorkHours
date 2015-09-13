@@ -697,13 +697,6 @@
                                              notes:notes
                                            success:^(BOOL result)
      {
-         
-         // add other attendees
-         
-         HIDE_PROGRESS;
-         [self dismiss];
-         
-         
          if (attendeeSeletedArray.count > 0) {
              
              for (NSUInteger i = 0; i < attendeeSeletedArray.count; i++) {

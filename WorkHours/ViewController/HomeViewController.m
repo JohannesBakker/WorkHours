@@ -30,7 +30,7 @@
 
 #define kMapZoom                13//6//12
 
-@interface HomeViewController () <GMSMapViewDelegate, MarkerViewDelegate, JTCalendarDataSource, GDIInfinitePageScrollViewControllerDelegate, PinMapDelegate> {
+@interface HomeViewController () <GMSMapViewDelegate, MarkerViewDelegate, JTCalendarDataSource, GDIInfinitePageScrollViewControllerDelegate, PinMapDelegate, HomeViewDelegate> {
     
     BOOL isTestMode;
     
@@ -56,6 +56,11 @@
     UserContext *userContext;
     
     NSMutableDictionary *dictTimesheets;
+    
+    // alert view variable
+    int resAlertType;
+    NSString *resAlertTitle;
+    NSString *resAlertMsg;
     
 }
 
@@ -88,7 +93,6 @@
 
     
     // Do any additional setup after loading the view.
-
     
     [self initLocalVariables];
     
@@ -104,25 +108,44 @@
     // hide navigationController
     [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:NO];
     
+    // download labour type list
+    if (userContext.arrLabourType == nil || userContext.arrLabourType.count == 0)
+    {
+        SHOW_PROGRESS(@"Fetching data...");
+        
+        [[ServerManager sharedManager] getLabourType:^(NSMutableArray *arrLabourList) {
+            
+            HIDE_PROGRESS;
+            
+            [userContext initLabourTypeArray:arrLabourList];
+            
+        } failure:^(NSString *failure) {
+            
+            HIDE_PROGRESS_WITH_FAILURE(failure);
+        }];
+    }
+    
     if (isMapviewMode)
     {
-        NSDate *currDate = [NSDate date];
-        
-        // refresh map
-        [self getTimesheetUserPins:currDate];
-        
         // update UI
         [self updateMapUI];
-    } else {
-        
-        // download timesheets for current month
-        [self getTimesheetsByMonthFromServer:selDate];
+
+        // refresh map
+        NSDate *currDate = [NSDate date];
+        [self getTimesheetUserPins:currDate];
+    }
+    else {
         
         // refresh UI
         [self updateCalendarUI];
+        
+        // download timesheets for current month
+        [self getTimesheetsByMonthFromServer:selDate];
     }
    
     // current VC is Home
+    [userContext setActiveVC:VC_HOME];
+    
     [UserContext sharedInstance].isHomeView = YES;
 }
 
@@ -141,19 +164,11 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)updateButtonUI {
-    if (isMapviewMode) {
-        self.navigationItem.rightBarButtonItem = nil;
-    }
-    else {
-       
-        // download timesheets for current month
-        [self getTimesheetsByMonthFromServer:selDate];
-    }
-}
 
 // update Map UI
 - (void)updateMapUI {
+    
+    //self.navigationItem.rightBarButtonItem = nil;
     
     NSDate *currDate = [NSDate date];
     
@@ -241,23 +256,26 @@
         isMapviewMode = YES;
         self.viewMap.hidden = NO;
         self.viewList.hidden = YES;
-        [self updateButtonUI];
+        
+        // update Map UI
+        [self updateMapUI];
+        
         
         NSDate *currDate = [NSDate date];
         
         [self getTimesheetUserPins:currDate];
         
-        // update Map UI
-        [self updateMapUI];
     }
     else {
         isMapviewMode = NO;
         self.viewMap.hidden = YES;
         self.viewList.hidden = NO;
-        [self updateButtonUI];
-        
+
         // update Calendar UI
         [self updateCalendarUI];
+        
+        // download timesheets for current month
+        [self getTimesheetsByMonthFromServer:selDate];
     }
 }
 
@@ -272,6 +290,7 @@
         userContext = [UserContext sharedInstance];
         
         userContext.mapDelegate = self;
+        userContext.homeViewDelegate = self;
     }
     
     // init calendar view
@@ -287,32 +306,9 @@
         
         self.lblNoneTimesheets.hidden = YES;
     }
-
-    
-    SHOW_PROGRESS(@"Fetching data...");
-
-    [[ServerManager sharedManager] getLabourType:^(NSMutableArray *arrLabourList) {
-        
-        HIDE_PROGRESS;
-        
-        [userContext initLabourTypeArray:arrLabourList];
-        
-        // download timesheets for current month
-        [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
-        
-    } failure:^(NSString *failure) {
-        
-        HIDE_PROGRESS_WITH_FAILURE(failure);
-        
-        // download timesheets for current month
-        [self getTimesheetsByMonthFromServer:self.calendar.currentDate];
-    }];
-    
     
     // init Map data
     isMapviewMode = YES;
-    [self updateButtonUI];
-    
 }
 
 
@@ -332,8 +328,11 @@
          HIDE_PROGRESS;
          
          [userContext initUserPinArray:arrPins];
-         [userContext.mapDelegate displayUserLocation];
-         [userContext.mapDelegate displayPins];
+         [self displayUserLocation];
+         [self displayPins];
+         
+//         [userContext.mapDelegate displayUserLocation];
+//         [userContext.mapDelegate displayPins];
          
      } failure:^(NSString *failure)
      {
@@ -371,7 +370,6 @@
 
 #pragma Google Map View
 - (UIView *)mapView:(GMSMapView *)mapView markerInfoWindow:(GMSMarker *)marker {
-    //    MarkerView *view = [[MarkerView alloc] init];
     
     UIView *view = [[[NSBundle mainBundle] loadNibNamed:@"MarkerView" owner:self options:nil] lastObject];
     MarkerView *tmpView = (MarkerView *)view;
@@ -380,7 +378,6 @@
     TimeSheet *sheet = [userContext getCoveredTimesheet:onePin.creationTime];
     
     NSDateFormatter *timeFormat = [NSDateFormatter new];
-    //timeFormat.dateFormat = @"hh:mm a";
     timeFormat.dateFormat = @"HH:mm";
     
     NSString *jobTitle = [NSString stringWithFormat:@"%d - %@", sheet.jobID, sheet.companyName];
@@ -630,15 +627,22 @@
         }
         
         // download labour types
-        //[self getLabourTypesFromServer];
-        
+/*
+        if (userContext.arrLabourType == nil || userContext.arrLabourType.count == 0) {
+            [self getLabourTypesFromServer];
+        }
+ */
         
     } failure:^(NSString *failure) {
         
         HIDE_PROGRESS_WITH_FAILURE(failure);
-        
+
+/*
         // download labour types
-        [self getLabourTypesFromServer];
+        if (userContext.arrLabourType == nil || userContext.arrLabourType.count == 0) {
+            [self getLabourTypesFromServer];
+        }
+ */
         
     }];
 }
@@ -801,5 +805,87 @@
     [self.navigationController pushViewController:vc animated:YES];
 
 }
+
+//================================================
+//          HomeViewDelegate functions
+//================================================
+- (void)reserveAlert:(int)alertType title:(NSString*)title msg:(NSString*)msg {
+    resAlertType = alertType;
+    resAlertTitle = [NSString stringWithString:title];
+    resAlertMsg = [NSString stringWithString:msg];
+}
+
+- (void)releaseAlert {
+    
+}
+
+- (void)displayAlert {
+    
+    UIAlertView *alertView = [ [UIAlertView alloc] initWithTitle:resAlertTitle message:resAlertMsg delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"YES", nil ];
+    
+    [alertView show];
+    
+}
+
+//================================================
+//          AlertView functions
+//================================================
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    
+    double lat = [appContext loadUserLocationLat];
+    double lon = [appContext loadUserLocationLng];
+    
+    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+    dateFormat.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+    
+    NSDate *startTime = [NSDate date];
+    
+    if (buttonIndex == 1) {
+        
+        if ((resAlertType == ALERT_AWAY_LOCATION)
+            || (resAlertType == ALERT_TODAY_WORKING)
+            || (resAlertType == ALERT_NO_TIMESHEET)) {
+            
+            
+            
+            [[ServerManager sharedManager] insertUserPin:[appContext loadUserID]
+                                                     lat:lat
+                                                     lon:lon
+                                        creationDateTime:startTime success:^(BOOL result)
+             {
+                 
+             } failure:^(NSString *failure)
+             {
+                 NSLog(@"location recording failed, %@ on %@\n", failure, [dateFormat stringFromDate:startTime]);
+             }];
+            
+            
+            if (resAlertType == ALERT_NO_TIMESHEET) {
+                
+                NSDate *endTime = [[NSDate alloc] initWithTimeInterval:3600 sinceDate:startTime];
+                [self gotoAddNewEvent:startTime endTime:endTime initLabourTypeId:kLabourTypeId_Labour];
+            }
+        }
+    }
+    else {
+        if (resAlertType == ALERT_TODAY_WORKING) {
+            
+            NSString *startDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
+                                       (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_BeginHour, kDayWorkTime_BeginMin];
+            NSString *endDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
+                                     (int)startTime.year, (int)startTime.month, (int)startTime.day, kDayWorkTime_EndHour, kDayWorkTime_EndMin];
+            
+            NSDate *allStartTime = [[NSDate alloc] init];
+            allStartTime = [dateFormat dateFromString:startDateTime];
+            
+            NSDate *allEndTime = [[NSDate alloc] init];
+            allEndTime = [dateFormat dateFromString:endDateTime];
+            
+            [self gotoNewEventWindow:allStartTime endTime:allEndTime initLabourTypeId:kLabourTypeId_Sick];
+        }
+    }
+}
+
 
 @end

@@ -17,6 +17,8 @@
     NSSortDescriptor *userPinSortDescriptor;
     NSMutableArray *userPinSortDescriptors;
     
+    int currentVC;
+    
     
 }
 
@@ -28,6 +30,8 @@
 @synthesize arrUserPins;
 @synthesize dictTimesheets;
 @synthesize arrJobs;
+
+@synthesize homeViewDelegate;
 
 
 + (instancetype)sharedInstance {
@@ -288,5 +292,72 @@
     
     return nConnections;
 }
+
+//********************************
+//  functions of ViewControllers
+//********************************
+- (void)setActiveVC:(int)vcType {
+    currentVC = vcType;
+}
+
+- (int)getActiveVC {
+    return currentVC;
+}
+
+- (void)reserveAlert:(int)alertType title:(NSString*)title msg:(NSString*)msg {
+    
+    self.isAlertDisplay = YES;
+    
+    switch (currentVC) {
+        case VC_HOME:
+            if (homeViewDelegate) {
+                if ([homeViewDelegate respondsToSelector:@selector(reserveAlert:title:msg:)]) {
+                    [homeViewDelegate reserveAlert:alertType title:title msg:msg];
+                }
+            }
+            break;
+            
+        default:
+            break;
+    }
+}
+
+- (void)releaseAlert {
+    
+    self.isAlertDisplay = NO;
+    
+    switch (currentVC) {
+        case VC_HOME:
+            if (homeViewDelegate) {
+                if ([homeViewDelegate respondsToSelector:@selector(releaseAlert)]) {
+                    [homeViewDelegate releaseAlert];
+                }
+            }
+            break;
+            
+        default:
+            break;
+    }
+    
+}
+
+- (void)displayAlert {
+    
+    self.isAlertDisplay = NO;
+    
+    switch (currentVC) {
+        case VC_HOME:
+            if (homeViewDelegate) {
+                if ([homeViewDelegate respondsToSelector:@selector(displayAlert)]) {
+                    [homeViewDelegate displayAlert];
+                }
+            }
+            break;
+            
+        default:
+            break;
+    }
+}
+
 
 @end
