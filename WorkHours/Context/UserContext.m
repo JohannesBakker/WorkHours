@@ -30,6 +30,8 @@
 @synthesize arrUserPins;
 @synthesize dictTimesheets;
 @synthesize arrJobs;
+@synthesize isAlertReserved;
+@synthesize isAlertDisplay;
 
 @synthesize homeViewDelegate;
 
@@ -304,9 +306,15 @@
     return currentVC;
 }
 
+- (BOOL)validAlertDisplay {
+    if (currentVC == VC_HOME)
+        return YES;
+    return NO;
+}
+
 - (void)reserveAlert:(int)alertType title:(NSString*)title msg:(NSString*)msg {
     
-    self.isAlertDisplay = YES;
+    isAlertReserved = YES;
     
     switch (currentVC) {
         case VC_HOME:
@@ -324,7 +332,7 @@
 
 - (void)releaseAlert {
     
-    self.isAlertDisplay = NO;
+    isAlertReserved = NO;
     
     switch (currentVC) {
         case VC_HOME:
@@ -343,12 +351,11 @@
 
 - (void)displayAlert {
     
-    self.isAlertDisplay = NO;
-    
     switch (currentVC) {
         case VC_HOME:
             if (homeViewDelegate) {
                 if ([homeViewDelegate respondsToSelector:@selector(displayAlert)]) {
+                    isAlertDisplay = YES;
                     [homeViewDelegate displayAlert];
                 }
             }

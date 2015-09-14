@@ -10,6 +10,7 @@
 #import "UIManager.h"
 #import "LabourType.h"
 #import "Constant.h"
+#import "UserContext.h"
 
 @interface SelLabourTypesViewController ()
 
@@ -28,8 +29,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
-//    [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:YES];
     
     // hide navigationController
     [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:NO];
@@ -49,6 +48,9 @@
     
     // set Connections
     self.lblConnection.text = [NSString stringWithFormat:@"%d", nConnections];
+    
+    // current VC is SelLabourTypesViewControllers
+    [[UserContext sharedInstance] setActiveVC:VC_SEL_LABOUR_TYPE];
     
 }
 

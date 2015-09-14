@@ -11,7 +11,7 @@
 #import "Job.h"
 #import "LabourType.h"
 
-#define kTestMode           YES //YES //NO
+#define kTestMode           NO //YES //NO
 
 // User location refresh timer interval :  30 mins
 #if (kTestMode == YES)
@@ -81,8 +81,9 @@ enum {
 @property (nonatomic) BOOL isAppBackground;     // YES : in Background,   NO : in Foreground
 @property (nonatomic) BOOL isTestMode;
 @property (nonatomic) BOOL isNewEventWindow;
-@property (nonatomic) BOOL isHomeView;          // YES : Map or Calendar View
+@property (nonatomic) BOOL isAlertReserved;      // YES : Alert reserved
 @property (nonatomic) BOOL isAlertDisplay;      // YES : Alert display
+
 
 @property (weak, nonatomic) NSObject <PinMapDelegate> *mapDelegate;
 @property (weak, nonatomic) NSObject <NewEventWindowDelegate> *addEventWindowDelegate;
@@ -109,6 +110,7 @@ enum {
 
 - (void)setActiveVC:(int)vcType;
 - (int)getActiveVC;
+- (BOOL)validAlertDisplay;
 - (void)reserveAlert:(int)alertType title:(NSString*)title msg:(NSString*)msg;
 - (void)releaseAlert;
 - (void)displayAlert;

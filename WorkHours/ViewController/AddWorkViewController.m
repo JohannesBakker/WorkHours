@@ -216,6 +216,9 @@
     [super viewWillAppear:animated];
     [uiManager isVisibleStatusBar:self.navigationController isShow:NO];
     
+    // current VC is Add work viewcontroller
+    [userContext setActiveVC:VC_ADDWORK];
+    
     // change view color with connection color
     self.view.backgroundColor = self.viewConnection.backgroundColor;
     

@@ -108,6 +108,9 @@
     // hide navigationController
     [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:NO];
     
+    // current VC is Home
+    [userContext setActiveVC:VC_HOME];
+    
     // download labour type list
     if (userContext.arrLabourType == nil || userContext.arrLabourType.count == 0)
     {
@@ -123,6 +126,11 @@
             
             HIDE_PROGRESS_WITH_FAILURE(failure);
         }];
+    }
+    
+    // display reserved alert
+    if (userContext.isAlertReserved && !userContext.isAlertDisplay) {
+        [userContext displayAlert];
     }
     
     if (isMapviewMode)
@@ -143,10 +151,7 @@
         [self getTimesheetsByMonthFromServer:selDate];
     }
    
-    // current VC is Home
-    [userContext setActiveVC:VC_HOME];
     
-    [UserContext sharedInstance].isHomeView = YES;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -154,9 +159,6 @@
     
     // status bar text color change with default color
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
-    
-    // current VC isn't Home
-    [UserContext sharedInstance].isHomeView = NO;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -330,9 +332,6 @@
          [userContext initUserPinArray:arrPins];
          [self displayUserLocation];
          [self displayPins];
-         
-//         [userContext.mapDelegate displayUserLocation];
-//         [userContext.mapDelegate displayPins];
          
      } failure:^(NSString *failure)
      {
@@ -573,7 +572,6 @@
     
     int user_id = [appContext loadUserID];
     
-    
     SHOW_PROGRESS(@"Fetching data...");
     
     [[ServerManager sharedManager] getTimesheetByDate:user_id selectedDate:select_date success:^(NSMutableArray *arrSheets)
@@ -626,24 +624,8 @@
             [self displayTimesheets:selDate eventPageIndex:prevPageIndex];
         }
         
-        // download labour types
-/*
-        if (userContext.arrLabourType == nil || userContext.arrLabourType.count == 0) {
-            [self getLabourTypesFromServer];
-        }
- */
-        
     } failure:^(NSString *failure) {
-        
         HIDE_PROGRESS_WITH_FAILURE(failure);
-
-/*
-        // download labour types
-        if (userContext.arrLabourType == nil || userContext.arrLabourType.count == 0) {
-            [self getLabourTypesFromServer];
-        }
- */
-        
     }];
 }
 
@@ -840,6 +822,9 @@
     dateFormat.dateFormat = @"yyyy-MM-dd HH:mm:ss";
     
     NSDate *startTime = [NSDate date];
+    
+    userContext.isAlertDisplay = NO;
+    userContext.isAlertReserved = NO;
     
     if (buttonIndex == 1) {
         

@@ -1008,7 +1008,7 @@
 				OTHER_LDFLAGS = "-ObjC";
 				"OTHER_LDFLAGS[arch=*]" = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "971a7561-1580-427a-9b54-e32140564b4c";
+				PROVISIONING_PROFILE = "0fde6251-4b0a-4c67-8b53-fbac3b6f2bf8";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;

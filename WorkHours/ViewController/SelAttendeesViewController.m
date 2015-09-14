@@ -10,6 +10,7 @@
 #import "UIManager.h"
 #import "UserInfo.h"
 #import "Constant.h"
+#import "UserContext.h"
 
 @interface SelAttendeesViewController () <UITableViewDelegate, UITableViewDataSource> {
     
@@ -39,17 +40,6 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    /*
-    [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:YES];
-    
-    // status bar text color change with default color
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
-    
-    UIBarButtonItem *rightButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(onClickedDone:)];
-    
-    self.navigationItem.rightBarButtonItem = rightButton;
-     */
-    
     // hide navigationController
     [[UIManager sharedInstance] isVisibleStatusBar:self.navigationController isShow:NO];
     
@@ -65,6 +55,9 @@
     
     // set Connections
     self.lblConnection.text = [NSString stringWithFormat:@"%d", nConnections];
+    
+    // current VC is SelAttendeesViewController
+    [[UserContext sharedInstance] setActiveVC:VC_SEL_ATTENDEES];
     
     
     isSelectedAll = NO;

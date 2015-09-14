@@ -20,7 +20,7 @@
 
 
 @interface AppDelegate () <UserLocationManagerDelegate> {
-    int nAlertViewType;
+    
     double prevUserLat;
     double prevUserLon;
     
@@ -30,7 +30,7 @@
     
     UserLocationManager *userLocationManager;
     
-    NSTimer *locationTImer;
+    NSTimer *locationTimer;
     NSTimeInterval intervalSecs;
     
     NSDate *prevRecordTime;
@@ -39,16 +39,9 @@
     NSDate *todayWorkTimeEnd;
     
     BOOL isTestMode;
-    BOOL isAlertDisplay;
     NSDate *prevNotificationTime;
     
     NSString *strNotifaction;
-    
-    // Alert reserving variables
-    BOOL isReservedJobAlert;
-    NSString *resAlertTitle;
-    NSString *resAlertMsg;
-    int resAlertType;
 }
 
 @end
@@ -112,7 +105,6 @@
     [userContext initUserContext];
 
     // init alert variable
-    isAlertDisplay = NO;
     userContext.isAlertDisplay = NO;
 
     strNotifaction = [[NSString alloc] init];
@@ -187,20 +179,23 @@
         }
         
         
-        // todo timer start
-        locationTImer = [NSTimer scheduledTimerWithTimeInterval:intervalSecs
+        // timer start
+        locationTimer = [NSTimer scheduledTimerWithTimeInterval:intervalSecs
                                                                     target:self
                                                        selector:@selector(locationTimerFunc:)
                                                                   userInfo:nil
                                                                    repeats:YES];
-
+        
+        if (userContext.isAlertReserved && !userContext.isAlertDisplay) {
+            [userContext displayAlert];
+        }
     }
     else {
         // background mode processing
         userContext.isAppBackground = YES;
         
         // todo timer stop
-        [locationTImer invalidate];
+        [locationTimer invalidate];
     }
     
 }
@@ -217,10 +212,10 @@
     if (intervalSecs < kLocationRecordingIntervalSec)
     {
         // reset timer
-        [locationTImer invalidate];
+        [locationTimer invalidate];
         
         intervalSecs = kLocationRecordingIntervalSec;
-        locationTImer = [NSTimer scheduledTimerWithTimeInterval:intervalSecs
+        locationTimer = [NSTimer scheduledTimerWithTimeInterval:intervalSecs
                                                          target:self
                                                        selector:@selector(locationTimerFunc:)
                                                        userInfo:nil
@@ -251,12 +246,6 @@
 
 - (void)checkUserLocation:(NSDate *)currTime {
     
-    /*
-    if (isAlertDisplay) {
-        return;
-    }
-     */
-    
     TimeSheet *coveredTimesheet = [userContext getCoveredTimesheet:currTime];
     NSString *title = @"Are you working?";
     NSString *message = @"No : Don't work,  Yes : Working";
@@ -264,7 +253,7 @@
     double currLat = [appContext loadUserLocationLat];
     double currLon = [appContext loadUserLocationLng];
     
-    nAlertViewType = ALERT_AWAY_LOCATION;
+    int nAlertViewType = ALERT_AWAY_LOCATION;
     
     if (coveredTimesheet)
     {
@@ -306,145 +295,17 @@
         strNotifaction = [NSString stringWithFormat:@"%@", @"Please allocate your time to a Job"];
     }
     
-    isAlertDisplay = YES;
-    userContext.isAlertDisplay = YES;
-    
     // reserve alert
     [userContext reserveAlert:nAlertViewType title:title msg:message];
     
     if (userContext.isAppBackground) {
-        // push notification
         [self displayPushNotification];
     } else {
-        // display alert
-        [userContext displayAlert];
-    }
-    
-    /*
-    
-    // if curretn VC isn't HomeView then reserve message
-    if (![UserContext sharedInstance].isHomeView) {
-        resAlertTitle = [NSString stringWithString:title];
-        resAlertMsg = [NSString stringWithString:message];
-        resAlertType = nAlertViewType;
-        
-        isReservedJobAlert = YES;
-        
-        isAlertDisplay = NO;
-        
-        // display notification repeatly
-        if (userContext.isAppBackground == YES) {
-            
-            NSDate *time = [NSDate date];
-            
-            if ([time timeIntervalSinceDate:prevNotificationTime] >= kLocalPushNotificationIntervalSec) {
-                [self displayPushNotification];
-            }
+        if (!userContext.isAlertDisplay && [userContext validAlertDisplay]) {
+            [userContext displayAlert];
         }
-
-        return;
-    }
-    
-    // timer stop, and alert display
-    [locationTImer invalidate];
-    
-    
-    // display alert view
-    UIAlertView *alertView = [ [UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"YES", nil ];
-    
-    [alertView show];
-    
-    isAlertDisplay = YES;
-    
-    isReservedJobAlert = NO;
-     
-     */
-}
-
-
-// alert view
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    
-    double lat = [appContext loadUserLocationLat];
-    double lon = [appContext loadUserLocationLng];
-
-    NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-    dateFormat.dateFormat = @"yyyy-MM-dd HH:mm:ss";
-    
-    isAlertDisplay = NO;
-    
-    if (buttonIndex == 1) {
-        
-        if ((nAlertViewType == ALERT_AWAY_LOCATION)
-            || (nAlertViewType == ALERT_TODAY_WORKING)
-            || (nAlertViewType == ALERT_NO_TIMESHEET)) {
-            
-            [[ServerManager sharedManager] insertUserPin:[appContext loadUserID]
-                                                     lat:lat
-                                                     lon:lon
-                                        creationDateTime:prevRecordTime success:^(BOOL result)
-             {
-             } failure:^(NSString *failure)
-             {
-                 NSLog(@"location recording failed, %@ on %@\n", failure, [dateFormat stringFromDate:prevRecordTime]);
-             }];
-            
-            intervalSecs = kLocationRecordingIntervalSec;
-            locationTImer = [NSTimer scheduledTimerWithTimeInterval:intervalSecs
-                                                             target:self
-                                                           selector:@selector(locationTimerFunc:)
-                                                           userInfo:nil
-                                                            repeats:YES];
-            
-            if (nAlertViewType == ALERT_NO_TIMESHEET) {
-                NSDate *startTime = [NSDate date];
-                NSDate *endTime = [[NSDate alloc] initWithTimeInterval:3600 sinceDate:startTime];
-                [self gotoNewEventWindow:startTime endTime:endTime initLabourTypeId:kLabourTypeId_Labour];
-            }
-        }
-    }
-    else {
-        if (nAlertViewType == ALERT_TODAY_WORKING) {
-            
-            NSString *startDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
-                                       (int)prevRecordTime.year, (int)prevRecordTime.month, (int)prevRecordTime.day, kDayWorkTime_BeginHour, kDayWorkTime_BeginMin];
-            NSString *endDateTime = [NSString stringWithFormat:@"%04d-%02d-%02d %02d:%02d:00",
-                                     (int)prevRecordTime.year, (int)prevRecordTime.month, (int)prevRecordTime.day, kDayWorkTime_EndHour, kDayWorkTime_EndMin];
-            
-            NSDate *startTime = [[NSDate alloc] init];
-            startTime = [dateFormat dateFromString:startDateTime];
-            
-            NSDate *endTime = [[NSDate alloc] init];
-            endTime = [dateFormat dateFromString:endDateTime];
-            
-            [self gotoNewEventWindow:startTime endTime:endTime initLabourTypeId:kLabourTypeId_Sick];
-        }
-        
     }
 }
-
-- (void)gotoNewEventWindow:(NSDate *)startTime endTime:(NSDate *)endTime initLabourTypeId:(int)initLabourTypeId
-{
-    if (userContext.isNewEventWindow) {
-        
-        // update event window
-        if (userContext.addEventWindowDelegate) {
-            if ([userContext.addEventWindowDelegate respondsToSelector:@selector(updateNewEventWindow:endTime:initLabourTypeId:)]) {
-                [userContext.addEventWindowDelegate updateNewEventWindow:startTime endTime:endTime initLabourTypeId:initLabourTypeId];
-            }
-        }
-    }
-    else {
-        // goto new event window
-        if (userContext.mapDelegate) {
-            if ([userContext.mapDelegate respondsToSelector:@selector(gotoNewEventWindow:endTime:initLabourTypeId:)]) {
-                [userContext.mapDelegate gotoNewEventWindow:startTime endTime:endTime initLabourTypeId:initLabourTypeId];
-            }
-        }
-    }
-    
-}
-
 
 - (void)displayPushNotification {
 
@@ -496,8 +357,6 @@
     if (isGettedLocation == NO) {
         isGettedLocation = YES;
         
-        
-        
         [[ServerManager sharedManager] insertUserPin:[appContext loadUserID]
                                                  lat:new_lat
                                                  lon:new_lon
@@ -520,7 +379,7 @@
     }
     
     // display notification repeatly
-    if (userContext.isAppBackground == YES && userContext.isAlertDisplay == YES) {
+    if (userContext.isAppBackground && userContext.isAlertReserved) {
         if ([currTime timeIntervalSinceDate:prevNotificationTime] >= kLocalPushNotificationIntervalSec) {
             [self displayPushNotification];
         }
@@ -562,8 +421,7 @@
 - (void)checkLocationNotification:(NSDate *)selectDate {
     [self checkUserLocation:selectDate];
     
-    if (userContext.isAppBackground == YES && userContext.isAlertDisplay == YES) {
-        // display push notification and return
+    if (userContext.isAppBackground && userContext.isAlertReserved) {
         [self displayPushNotification];
     }
 }

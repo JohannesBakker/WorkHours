@@ -90,6 +90,9 @@
     // init local variables
     //========================
     
+    // current VC is JobSelectionViewController
+    [[UserContext sharedInstance] setActiveVC:VC_JOB_SELECTION];
+    
     arrJobs = [UserContext sharedInstance].arrJobs;
     [self resortJobs];
 
